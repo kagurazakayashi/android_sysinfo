@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════════════════
+# 所有以 . 开头的文件夹（点目录）
+# 例如 .gradle/ .idea/ .wpscomate/ .externalNativeBuild/ .cxx/ 等
+# 注意：
+#   - .git/ 由 Git 自行管理，无需也不可加入版本控制
+#   - .gitignore / .gitattributes 等【点文件】不会被此规则忽略（规则仅匹配目录）
+# ═══════════════════════════════════════════════════════════
+.*/
+
+# ═══════════════════════════════════════════════════════════
+# Android / Gradle 项目
+# ═══════════════════════════════════════════════════════════
+
+# ── 构建产物 ──
+build/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output-metadata.json
+
+# ── Gradle ──
+.gradle/
+gradle-app.setting
+gradle-*.zip
+gradle-9.7.1/
+
+# ── 本地配置（含本机 SDK 路径，勿提交）──
+local.properties
+
+# ── NDK / CMake / C/C++ 原生代码 ──
+.externalNativeBuild/
+.cxx/
+*.so
+
+# ── IDE / 编辑器 ──
+.idea/
+*.iml
+.vscode/
+
+# ── 测试 / 覆盖率 / 静态分析报告 ──
+captures/
+lint-reports/
+lint-results-*.xml
+*.hprof
+
+# ── 签名 / 密钥（严禁提交）──
+*.jks
+*.keystore
+
+# ── 其他系统文件 ──
+.DS_Store
+Thumbs.db

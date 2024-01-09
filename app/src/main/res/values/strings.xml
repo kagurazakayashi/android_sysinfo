@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Build 版本信息</string>
+    <string name="title_main">Build.VERSION 信息</string>
+    <string name="subtitle_main">android.os.Build.VERSION 字段一览（原字段名 + 中文名称）</string>
+    <string name="copy_all">复制全部信息</string>
+</resources>

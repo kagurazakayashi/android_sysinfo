@@ -1,0 +1,4 @@
+// 根构建脚本：统一声明 Android Gradle Plugin 版本
+plugins {
+    id 'com.android.application' version '9.4.0' apply false
+}
