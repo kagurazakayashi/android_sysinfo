@@ -5,43 +5,31 @@
     android:orientation="vertical"
     android:background="@color/background">
 
-    <!-- 顶部标题栏 -->
-    <LinearLayout
+    <!-- 标准顶栏：标题 + "复制全部"按钮 -->
+    <android.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="@color/primary"
+        android:elevation="4dp"
+        android:theme="@android:style/ThemeOverlay.Material.Dark.ActionBar"
+        android:title="@string/title_main"
+        android:titleTextColor="#FFFFFF" />
+
+    <!-- 设备信息条 -->
+    <TextView
+        android:id="@+id/device_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/primary"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="18dp"
-        android:paddingBottom="18dp">
+        android:background="@color/card_bg"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textColor="@color/text_sub"
+        android:textSize="13sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/title_main"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="4dp"
-            android:text="@string/subtitle_main"
-            android:textColor="#CCFFFFFF"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/device_info"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingTop="6dp"
-            android:textColor="#B3FFFFFF"
-            android:textSize="12sp" />
-    </LinearLayout>
-
-    <!-- 信息列表 -->
+    <!-- 信息列表（点击任意条目可复制该行） -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -55,16 +43,5 @@
             android:orientation="vertical"
             android:padding="12dp" />
     </ScrollView>
-
-    <!-- 底部操作按钮 -->
-    <Button
-        android:id="@+id/copy_btn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:background="@color/accent"
-        android:text="@string/copy_all"
-        android:textColor="#FFFFFF"
-        android:textSize="15sp" />
 
 </LinearLayout>

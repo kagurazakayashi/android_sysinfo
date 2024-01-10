@@ -7,11 +7,13 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,8 @@ import java.util.List;
 /**
  * 主界面：展示 android.os.Build.VERSION 中的各项系统版本信息，
  * 每条同时显示原对象名字段（Build.VERSION.xxx）与对应的中文名称。
+ * 单击任意条目可将该行内容复制到剪贴板并弹出提示；
+ * 顶栏提供"复制全部"按钮。
  */
 public class MainActivity extends Activity {
 
@@ -33,9 +37,15 @@ public class MainActivity extends Activity {
             this.fieldName = fieldName;
             this.value = value;
         }
+
+        /** 复制单行时使用的内容：字段名 = 值 */
+        String toClipboardText() {
+            return fieldName + " = " + value;
+        }
     }
 
     private LinearLayout mContainer;
+    private List<InfoItem> mItems;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,23 +54,29 @@ public class MainActivity extends Activity {
 
         mContainer = findViewById(R.id.container);
 
+        // 标准顶栏：标题 + "复制全部"菜单按钮
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.inflateMenu(R.menu.menu_main);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_copy_all) {
+                    copyAll();
+                    return true;
+                }
+                return false;
+            }
+        });
+
         TextView deviceInfo = findViewById(R.id.device_info);
         deviceInfo.setText("设备：" + Build.MANUFACTURER + " " + Build.MODEL
                 + " · Android " + Build.VERSION.RELEASE
                 + " (API " + Build.VERSION.SDK_INT + ")");
 
-        List<InfoItem> items = buildItems();
-        for (InfoItem item : items) {
+        mItems = buildItems();
+        for (InfoItem item : mItems) {
             mContainer.addView(createItemView(item));
         }
-
-        Button copyBtn = findViewById(R.id.copy_btn);
-        copyBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                copyAll(items);
-            }
-        });
     }
 
     /** 收集 Build.VERSION 各字段（中文名 + 原字段名 + 值） */
@@ -101,8 +117,8 @@ public class MainActivity extends Activity {
         return value == 0 ? "0（此系统未提供）" : String.valueOf(value);
     }
 
-    /** 动态生成一条“卡片”样式的信息条目 */
-    private View createItemView(InfoItem item) {
+    /** 动态生成一条"卡片"样式的信息条目，单击整行复制该条内容 */
+    private View createItemView(final InfoItem item) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(14), dp(12), dp(14), dp(12));
@@ -113,6 +129,19 @@ public class MainActivity extends Activity {
         card.setLayoutParams(lp);
         card.setBackgroundResource(R.drawable.card_bg);
         card.setElevation(dp(1));
+
+        // 整行可点击：单击复制该条信息
+        card.setClickable(true);
+        card.setFocusable(true);
+        TypedValue ripple = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
+        card.setForeground(getDrawable(ripple.resourceId));
+        card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                copyItem(item);
+            }
+        });
 
         TextView title = new TextView(this);
         title.setText(item.chineseName);
@@ -133,7 +162,6 @@ public class MainActivity extends Activity {
         value.setTypeface(Typeface.MONOSPACE);
         value.setTextColor(getColor(R.color.text_primary));
         value.setPadding(0, dp(6), 0, 0);
-        value.setTextIsSelectable(true);
 
         card.addView(title);
         card.addView(field);
@@ -141,20 +169,28 @@ public class MainActivity extends Activity {
         return card;
     }
 
+    /** 复制某一条信息到剪贴板，并弹出自动消失的提示 */
+    private void copyItem(InfoItem item) {
+        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        cm.setPrimaryClip(ClipData.newPlainText(item.fieldName, item.toClipboardText()));
+        Toast.makeText(this, getString(R.string.copy_single_toast, item.fieldName),
+                Toast.LENGTH_SHORT).show();
+    }
+
     /** 把全部信息复制到剪贴板 */
-    private void copyAll(List<InfoItem> items) {
+    private void copyAll() {
         StringBuilder sb = new StringBuilder();
         sb.append("Android Build.VERSION 系统版本信息\n");
         sb.append("设备: ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append('\n');
         sb.append("Android 版本: ").append(Build.VERSION.RELEASE)
                 .append(" (API ").append(Build.VERSION.SDK_INT).append(")\n\n");
-        for (InfoItem item : items) {
+        for (InfoItem item : mItems) {
             sb.append("【").append(item.chineseName).append("】\n");
             sb.append("  ").append(item.fieldName).append(" = ").append(item.value).append('\n');
         }
         ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(ClipData.newPlainText("Build.VERSION", sb.toString()));
-        Toast.makeText(this, "已复制全部信息到剪贴板", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.copy_all_toast, Toast.LENGTH_SHORT).show();
     }
 
     private int dp(float value) {

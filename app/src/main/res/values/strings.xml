@@ -2,6 +2,7 @@
 <resources>
     <string name="app_name">Build 版本信息</string>
     <string name="title_main">Build.VERSION 信息</string>
-    <string name="subtitle_main">android.os.Build.VERSION 字段一览（原字段名 + 中文名称）</string>
-    <string name="copy_all">复制全部信息</string>
+    <string name="copy_all">复制全部</string>
+    <string name="copy_single_toast">已复制：%1$s</string>
+    <string name="copy_all_toast">已复制全部信息到剪贴板</string>
 </resources>
