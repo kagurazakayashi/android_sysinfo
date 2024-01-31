@@ -1,196 +1,122 @@
 package com.example.buildinfo;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.TypedValue;
-import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toolbar;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 主界面：展示 android.os.Build.VERSION 中的各项系统版本信息，
- * 每条同时显示原对象名字段（Build.VERSION.xxx）与对应的中文名称。
- * 单击任意条目可将该行内容复制到剪贴板并弹出提示；
- * 顶栏提供"复制全部"按钮。
+ * 根界面：android.os 包的全部顶层类列表。
+ * 点击任意类进入其详情（静态字段 + 嵌套类，可继续逐级深入）。
  */
 public class MainActivity extends Activity {
 
-    /** 一条版本信息：中文名称 + 原字段名 + 实际值 */
-    private static final class InfoItem {
-        final String chineseName;
-        final String fieldName;
-        final String value;
-
-        InfoItem(String chineseName, String fieldName, String value) {
-            this.chineseName = chineseName;
-            this.fieldName = fieldName;
-            this.value = value;
-        }
-
-        /** 复制单行时使用的内容：字段名 = 值 */
-        String toClipboardText() {
-            return fieldName + " = " + value;
-        }
-    }
-
     private LinearLayout mContainer;
-    private List<InfoItem> mItems;
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle("android.os 包信息");
+        toolbar.setSubtitle("共 " + OsClasses.TOP_LEVEL.length + " 个类 · 点击查看该类信息");
+
         mContainer = findViewById(R.id.container);
 
-        // 标准顶栏：标题 + "复制全部"菜单按钮
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.inflateMenu(R.menu.menu_main);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+        // 后台线程逐个统计各类的字段数 / 嵌套类数（避免主线程卡顿）
+        final AtomicInteger done = new AtomicInteger(0);
+        new Thread(new Runnable() {
             @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == R.id.action_copy_all) {
-                    copyAll();
-                    return true;
+            public void run() {
+                final String[] names = OsClasses.TOP_LEVEL;
+                final int[] fieldCounts = new int[names.length];
+                final int[] nestedCounts = new int[names.length];
+                for (int i = 0; i < names.length; i++) {
+                    Class<?> cls = OsInfo.loadClass(names[i]);
+                    if (cls != null) {
+                        fieldCounts[i] = OsInfo.countStaticFields(cls);
+                        nestedCounts[i] = cls.getClasses().length;
+                    } else {
+                        fieldCounts[i] = -1;
+                    }
+                    done.incrementAndGet();
                 }
-                return false;
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int i = 0; i < names.length; i++) {
+                            mContainer.addView(createClassItem(names[i], fieldCounts[i], nestedCounts[i]));
+                        }
+                    }
+                });
             }
-        });
-
-        TextView deviceInfo = findViewById(R.id.device_info);
-        deviceInfo.setText("设备：" + Build.MANUFACTURER + " " + Build.MODEL
-                + " · Android " + Build.VERSION.RELEASE
-                + " (API " + Build.VERSION.SDK_INT + ")");
-
-        mItems = buildItems();
-        for (InfoItem item : mItems) {
-            mContainer.addView(createItemView(item));
-        }
+        }).start();
     }
 
-    /** 收集 Build.VERSION 各字段（中文名 + 原字段名 + 值） */
-    private List<InfoItem> buildItems() {
-        List<InfoItem> items = new ArrayList<>();
-        items.add(new InfoItem("基础操作系统", "Build.VERSION.BASE_OS",
-                textOf(Build.VERSION.BASE_OS)));
-        items.add(new InfoItem("开发代号", "Build.VERSION.CODENAME",
-                textOf(Build.VERSION.CODENAME)));
-        items.add(new InfoItem("增量版本号（内部构建号）", "Build.VERSION.INCREMENTAL",
-                textOf(Build.VERSION.INCREMENTAL)));
-        items.add(new InfoItem("预览版 SDK 编号", "Build.VERSION.PREVIEW_SDK_INT",
-                intOf(Build.VERSION.PREVIEW_SDK_INT)));
-        items.add(new InfoItem("发布版本号（Android 版本）", "Build.VERSION.RELEASE",
-                textOf(Build.VERSION.RELEASE)));
-        items.add(new InfoItem("发布版本或开发代号", "Build.VERSION.RELEASE_OR_CODENAME",
-                textOf(Build.VERSION.RELEASE_OR_CODENAME)));
-        items.add(new InfoItem("发布/预览显示名称", "Build.VERSION.RELEASE_OR_PREVIEW_DISPLAY",
-                textOf(Build.VERSION.RELEASE_OR_PREVIEW_DISPLAY)));
-        items.add(new InfoItem("SDK 版本（字符串）", "Build.VERSION.SDK",
-                textOf(Build.VERSION.SDK)));
-        items.add(new InfoItem("SDK 整型编号", "Build.VERSION.SDK_INT",
-                intOf(Build.VERSION.SDK_INT)));
-        items.add(new InfoItem("安全补丁级别", "Build.VERSION.SECURITY_PATCH",
-                textOf(Build.VERSION.SECURITY_PATCH)));
-        items.add(new InfoItem("媒体性能等级", "Build.VERSION.MEDIA_PERFORMANCE_CLASS",
-                intOf(Build.VERSION.MEDIA_PERFORMANCE_CLASS)));
-        return items;
-    }
+    /** 生成一个类条目（可点击进入详情） */
+    private View createClassItem(final String className, int fieldCount, int nestedCount) {
+        String shortName = className.substring(className.lastIndexOf('.') + 1);
 
-    /** 字符串为空时给出提示文案 */
-    private static String textOf(String value) {
-        return (value == null || value.isEmpty()) ? "—（此系统未提供）" : value;
-    }
-
-    /** 整型为 0（未定义）时给出提示文案 */
-    private static String intOf(int value) {
-        return value == 0 ? "0（此系统未提供）" : String.valueOf(value);
-    }
-
-    /** 动态生成一条"卡片"样式的信息条目，单击整行复制该条内容 */
-    private View createItemView(final InfoItem item) {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(14), dp(12), dp(14), dp(12));
+        card.setPadding(dp(14), dp(10), dp(14), dp(10));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(0, dp(5), 0, dp(5));
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(4), 0, dp(4));
         card.setLayoutParams(lp);
         card.setBackgroundResource(R.drawable.card_bg);
         card.setElevation(dp(1));
 
-        // 整行可点击：单击复制该条信息
-        card.setClickable(true);
-        card.setFocusable(true);
         TypedValue ripple = new TypedValue();
         getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
         card.setForeground(getDrawable(ripple.resourceId));
-        card.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                copyItem(item);
-            }
-        });
+        card.setClickable(true);
 
         TextView title = new TextView(this);
-        title.setText(item.chineseName);
+        title.setText(shortName);
         title.setTextSize(16);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setTextColor(getColor(R.color.text_primary));
 
-        TextView field = new TextView(this);
-        field.setText(item.fieldName);
-        field.setTextSize(12);
-        field.setTypeface(Typeface.MONOSPACE);
-        field.setTextColor(getColor(R.color.text_sub));
-        field.setPadding(0, dp(3), 0, 0);
-
-        TextView value = new TextView(this);
-        value.setText(item.value);
-        value.setTextSize(15);
-        value.setTypeface(Typeface.MONOSPACE);
-        value.setTextColor(getColor(R.color.text_primary));
-        value.setPadding(0, dp(6), 0, 0);
+        TextView sub = new TextView(this);
+        if (fieldCount >= 0) {
+            sub.setText(className + "  ·  " + fieldCount + " 个静态字段 · " + nestedCount + " 个嵌套类");
+        } else {
+            sub.setText(className + "  ·  无法加载");
+        }
+        sub.setTextSize(12);
+        sub.setTypeface(Typeface.MONOSPACE);
+        sub.setTextColor(getColor(R.color.text_sub));
+        sub.setPadding(0, dp(3), 0, 0);
 
         card.addView(title);
-        card.addView(field);
-        card.addView(value);
+        card.addView(sub);
+        card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ClassDetailActivity.class);
+                intent.putExtra(ClassDetailActivity.EXTRA_CLASS, className);
+                startActivity(intent);
+            }
+        });
         return card;
-    }
-
-    /** 复制某一条信息到剪贴板，并弹出自动消失的提示 */
-    private void copyItem(InfoItem item) {
-        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        cm.setPrimaryClip(ClipData.newPlainText(item.fieldName, item.toClipboardText()));
-        Toast.makeText(this, getString(R.string.copy_single_toast, item.fieldName),
-                Toast.LENGTH_SHORT).show();
-    }
-
-    /** 把全部信息复制到剪贴板 */
-    private void copyAll() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Android Build.VERSION 系统版本信息\n");
-        sb.append("设备: ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append('\n');
-        sb.append("Android 版本: ").append(Build.VERSION.RELEASE)
-                .append(" (API ").append(Build.VERSION.SDK_INT).append(")\n\n");
-        for (InfoItem item : mItems) {
-            sb.append("【").append(item.chineseName).append("】\n");
-            sb.append("  ").append(item.fieldName).append(" = ").append(item.value).append('\n');
-        }
-        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        cm.setPrimaryClip(ClipData.newPlainText("Build.VERSION", sb.toString()));
-        Toast.makeText(this, R.string.copy_all_toast, Toast.LENGTH_SHORT).show();
     }
 
     private int dp(float value) {

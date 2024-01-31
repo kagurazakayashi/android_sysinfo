@@ -1,0 +1,306 @@
+package com.example.buildinfo;
+
+import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Typeface;
+import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.Toolbar;
+
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * 类详情页：展示某个类的类型信息、全部 public 静态字段及当前值、
+ * 以及嵌套类/接口列表（点击可继续深入查看）。
+ */
+public class ClassDetailActivity extends Activity {
+
+    public static final String EXTRA_CLASS = "class_name";
+
+    private String mClassName;
+    private List<OsInfo.FieldInfo> mFields;
+    private List<Class<?>> mNested;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_detail);
+
+        mClassName = getIntent().getStringExtra(EXTRA_CLASS);
+        if (mClassName == null) {
+            finish();
+            return;
+        }
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        String shortName = mClassName.substring(mClassName.lastIndexOf('.') + 1);
+        toolbar.setTitle(shortName);
+        toolbar.setSubtitle(mClassName);
+        toolbar.inflateMenu(R.menu.menu_detail);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_copy_all) {
+                    copyAll();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        final LinearLayout container = findViewById(R.id.container);
+
+        Class<?> cls = OsInfo.loadClass(mClassName);
+        if (cls == null) {
+            showMessage(container, "无法加载类：" + mClassName + "\n（可能是隐藏 API 或系统限制）");
+            return;
+        }
+
+        // 类型信息
+        String kind = cls.isInterface() ? "接口" : (cls.isEnum() ? "枚举" : "类");
+        int mods = cls.getModifiers();
+        StringBuilder modText = new StringBuilder();
+        if (Modifier.isPublic(mods)) modText.append("public ");
+        if (Modifier.isAbstract(mods) && !cls.isInterface()) modText.append("abstract ");
+        if (Modifier.isFinal(mods)) modText.append("final ");
+        if (cls.isAnnotation()) kind = "注解";
+        container.addView(sectionTitle("类型信息"));
+        container.addView(infoRow("种类", kind));
+        container.addView(infoRow("修饰符", modText.toString().trim().isEmpty() ? "—" : modText.toString().trim()));
+        container.addView(infoRow("包", cls.getPackage() == null ? "—" : cls.getPackage().getName()));
+        Class<?> superC = cls.getSuperclass();
+        container.addView(infoRow("父类", superC == null ? "—" : superC.getName()));
+        Class<?>[] ifaces = cls.getInterfaces();
+        container.addView(infoRow("实现的接口", ifaces.length == 0 ? "无" : joinNames(ifaces)));
+
+        // 静态字段
+        mFields = OsInfo.readStaticFields(cls);
+        container.addView(sectionTitle("静态字段（" + mFields.size() + "）"));
+        if (mFields.isEmpty()) {
+            container.addView(emptyHint("该类没有可读取的 public 静态字段"));
+        } else {
+            for (OsInfo.FieldInfo f : mFields) {
+                container.addView(createFieldView(f));
+            }
+        }
+
+        // 嵌套类
+        try {
+            Class<?>[] nested = cls.getClasses();
+            mNested = new ArrayList<>(Arrays.asList(nested));
+            Collections.sort(mNested, new Comparator<Class<?>>() {
+                @Override
+                public int compare(Class<?> a, Class<?> b) {
+                    return a.getName().compareTo(b.getName());
+                }
+            });
+        } catch (Throwable t) {
+            mNested = new ArrayList<>();
+        }
+        container.addView(sectionTitle("嵌套类 / 接口（" + mNested.size() + "）"));
+        if (mNested.isEmpty()) {
+            container.addView(emptyHint("没有嵌套类"));
+        } else {
+            for (final Class<?> n : mNested) {
+                container.addView(createNestedView(n));
+            }
+        }
+    }
+
+    /** 分段标题 */
+    private View sectionTitle(String text) {
+        TextView tv = new TextView(this);
+        tv.setText(text);
+        tv.setTextSize(14);
+        tv.setTypeface(Typeface.DEFAULT_BOLD);
+        tv.setTextColor(getColor(R.color.accent));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(16), 0, dp(4));
+        tv.setLayoutParams(lp);
+        return tv;
+    }
+
+    /** 普通键值行（类型信息用） */
+    private View infoRow(String key, String value) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(dp(4), dp(3), dp(4), dp(3));
+        TextView k = new TextView(this);
+        k.setText(key);
+        k.setTextSize(13);
+        k.setTextColor(getColor(R.color.text_sub));
+        k.setLayoutParams(new LinearLayout.LayoutParams(dp(80), ViewGroup.LayoutParams.WRAP_CONTENT));
+        TextView v = new TextView(this);
+        v.setText(value);
+        v.setTextSize(13);
+        v.setTypeface(Typeface.MONOSPACE);
+        v.setTextColor(getColor(R.color.text_primary));
+        v.setTextIsSelectable(true);
+        row.addView(k);
+        row.addView(v);
+        return row;
+    }
+
+    /** 字段卡片：点击复制该字段行 */
+    private View createFieldView(final OsInfo.FieldInfo f) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(12), dp(8), dp(12), dp(8));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(3), 0, dp(3));
+        card.setLayoutParams(lp);
+        card.setBackgroundResource(R.drawable.card_bg);
+        card.setElevation(dp(1));
+        TypedValue ripple = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
+        card.setForeground(getDrawable(ripple.resourceId));
+        card.setClickable(true);
+
+        TextView name = new TextView(this);
+        name.setText(f.name);
+        name.setTextSize(14);
+        name.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        name.setTextColor(getColor(R.color.primary));
+
+        TextView type = new TextView(this);
+        type.setText("类型：" + f.type);
+        type.setTextSize(11);
+        type.setTextColor(getColor(R.color.text_sub));
+
+        TextView value = new TextView(this);
+        value.setText(f.value);
+        value.setTextSize(14);
+        value.setTypeface(Typeface.MONOSPACE);
+        value.setTextColor(getColor(R.color.text_primary));
+        value.setPadding(0, dp(4), 0, 0);
+        value.setTextIsSelectable(true);
+
+        card.addView(name);
+        card.addView(type);
+        card.addView(value);
+        card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String text = mClassName + "." + f.name + " = " + f.value;
+                copy(text, f.name);
+            }
+        });
+        return card;
+    }
+
+    /** 嵌套类条目：点击进入该类的详情页 */
+    private View createNestedView(final Class<?> n) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(12), dp(8), dp(12), dp(8));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(3), 0, dp(3));
+        card.setLayoutParams(lp);
+        card.setBackgroundResource(R.drawable.card_bg);
+        card.setElevation(dp(1));
+        TypedValue ripple = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
+        card.setForeground(getDrawable(ripple.resourceId));
+        card.setClickable(true);
+
+        String shortName = n.getName().substring(n.getName().lastIndexOf('.') + 1);
+        String kind = n.isInterface() ? "接口" : (n.isEnum() ? "枚举" : "类");
+
+        TextView name = new TextView(this);
+        name.setText(shortName + "  (" + kind + ")");
+        name.setTextSize(14);
+        name.setTypeface(Typeface.DEFAULT_BOLD);
+        name.setTextColor(getColor(R.color.text_primary));
+
+        TextView full = new TextView(this);
+        full.setText(n.getName());
+        full.setTextSize(11);
+        full.setTypeface(Typeface.MONOSPACE);
+        full.setTextColor(getColor(R.color.text_sub));
+
+        card.addView(name);
+        card.addView(full);
+        card.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ClassDetailActivity.this, ClassDetailActivity.class);
+                intent.putExtra(EXTRA_CLASS, n.getName());
+                startActivity(intent);
+            }
+        });
+        return card;
+    }
+
+    private View emptyHint(String text) {
+        TextView tv = new TextView(this);
+        tv.setText(text);
+        tv.setTextSize(13);
+        tv.setTextColor(getColor(R.color.text_sub));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, dp(4), 0, dp(8));
+        tv.setLayoutParams(lp);
+        return tv;
+    }
+
+    private void showMessage(LinearLayout container, String msg) {
+        TextView tv = new TextView(this);
+        tv.setText(msg);
+        tv.setTextSize(14);
+        tv.setTextColor(getColor(R.color.text_primary));
+        tv.setPadding(dp(16), dp(24), dp(16), dp(24));
+        container.addView(tv);
+    }
+
+    private String joinNames(Class<?>[] arr) {
+        StringBuilder sb = new StringBuilder();
+        for (Class<?> c : arr) {
+            if (sb.length() > 0) sb.append("\n");
+            sb.append(c.getName());
+        }
+        return sb.toString();
+    }
+
+    private void copy(String text, String label) {
+        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        cm.setPrimaryClip(ClipData.newPlainText(label, text));
+        Toast.makeText(this, "已复制：" + label, Toast.LENGTH_SHORT).show();
+    }
+
+    /** 复制本类全部静态字段（含类型信息）到剪贴板 */
+    private void copyAll() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("类: ").append(mClassName).append('\n');
+        sb.append("静态字段: ").append(mFields.size()).append('\n');
+        for (OsInfo.FieldInfo f : mFields) {
+            sb.append("  ").append(mClassName).append('.').append(f.name)
+                    .append(" (").append(f.type).append(") = ").append(f.value).append('\n');
+        }
+        sb.append("嵌套类: ").append(mNested.size()).append('\n');
+        for (Class<?> n : mNested) {
+            sb.append("  ").append(n.getName()).append('\n');
+        }
+        copy(sb.toString(), mClassName);
+    }
+
+    private int dp(float value) {
+        return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+}
