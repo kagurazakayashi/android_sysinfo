@@ -38,6 +38,16 @@ public class MainActivity extends Activity {
         toolbar.setTitle("android.os 包信息");
         toolbar.setSubtitle("共 " + OsClasses.TOP_LEVEL.length + " 个类 · 点击查看该类信息");
 
+        // 顶部栏返回按钮（主界面：点击退出应用）
+        toolbar.setNavigationIcon(android.R.drawable.ic_menu_revert);
+        toolbar.setNavigationContentDescription("返回");
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
         mContainer = findViewById(R.id.container);
 
         // 后台线程逐个统计各类的字段数 / 嵌套类数（避免主线程卡顿）

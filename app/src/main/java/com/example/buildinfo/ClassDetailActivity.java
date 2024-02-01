@@ -51,6 +51,16 @@ public class ClassDetailActivity extends Activity {
         toolbar.setTitle(shortName);
         toolbar.setSubtitle(mClassName);
         toolbar.inflateMenu(R.menu.menu_detail);
+
+        // 顶部栏返回按钮（详情页：点击返回上一级）
+        toolbar.setNavigationIcon(android.R.drawable.ic_menu_revert);
+        toolbar.setNavigationContentDescription("返回");
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
