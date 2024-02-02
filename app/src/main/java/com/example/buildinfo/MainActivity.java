@@ -7,6 +7,9 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,8 +41,11 @@ public class MainActivity extends Activity {
         toolbar.setTitle("android.os 包信息");
         toolbar.setSubtitle("共 " + OsClasses.TOP_LEVEL.length + " 个类 · 点击查看该类信息");
 
-        // 顶部栏返回按钮（主界面：点击退出应用）
-        toolbar.setNavigationIcon(android.R.drawable.ic_menu_revert);
+        // 顶部栏返回按钮（主界面：点击退出应用；使用系统主题的标准 Material 返回箭头）
+        TypedValue navArrow = new TypedValue();
+        if (getTheme().resolveAttribute(android.R.attr.homeAsUpIndicator, navArrow, true)) {
+            toolbar.setNavigationIcon(navArrow.resourceId);
+        }
         toolbar.setNavigationContentDescription("返回");
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,7 +106,7 @@ public class MainActivity extends Activity {
         card.setClickable(true);
 
         TextView title = new TextView(this);
-        title.setText(shortName);
+        title.setText(buildTitle(shortName, ZhNames.classZh(className)));
         title.setTextSize(16);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setTextColor(getColor(R.color.text_primary));
@@ -127,6 +133,17 @@ public class MainActivity extends Activity {
             }
         });
         return card;
+    }
+
+    /** 主标题：英文名 + 中文名（中文用强调色显示） */
+    private CharSequence buildTitle(String en, String zh) {
+        if (zh == null || zh.isEmpty()) return en;
+        String text = en + "  " + zh;
+        SpannableString ss = new SpannableString(text);
+        ss.setSpan(new ForegroundColorSpan(getColor(R.color.accent)),
+                en.length() + 2, text.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return ss;
     }
 
     private int dp(float value) {

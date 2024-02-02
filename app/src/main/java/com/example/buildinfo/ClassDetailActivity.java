@@ -7,6 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,12 +51,15 @@ public class ClassDetailActivity extends Activity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         String shortName = mClassName.substring(mClassName.lastIndexOf('.') + 1);
-        toolbar.setTitle(shortName);
+        toolbar.setTitle(buildTitle(shortName, ZhNames.classZh(mClassName)));
         toolbar.setSubtitle(mClassName);
         toolbar.inflateMenu(R.menu.menu_detail);
 
-        // 顶部栏返回按钮（详情页：点击返回上一级）
-        toolbar.setNavigationIcon(android.R.drawable.ic_menu_revert);
+        // 顶部栏返回按钮（详情页：点击返回上一级；使用系统主题的标准 Material 返回箭头）
+        TypedValue navArrow = new TypedValue();
+        if (getTheme().resolveAttribute(android.R.attr.homeAsUpIndicator, navArrow, true)) {
+            toolbar.setNavigationIcon(navArrow.resourceId);
+        }
         toolbar.setNavigationContentDescription("返回");
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -183,7 +189,7 @@ public class ClassDetailActivity extends Activity {
         card.setClickable(true);
 
         TextView name = new TextView(this);
-        name.setText(f.name);
+        name.setText(buildTitle(f.name, ZhNames.fieldZh(f.name)));
         name.setTextSize(14);
         name.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
         name.setTextColor(getColor(R.color.primary));
@@ -232,9 +238,11 @@ public class ClassDetailActivity extends Activity {
 
         String shortName = n.getName().substring(n.getName().lastIndexOf('.') + 1);
         String kind = n.isInterface() ? "接口" : (n.isEnum() ? "枚举" : "类");
+        String zh = ZhNames.classZh(n.getName());
+        if (zh == null) zh = ZhNames.nestedZh(shortName);
 
         TextView name = new TextView(this);
-        name.setText(shortName + "  (" + kind + ")");
+        name.setText(buildTitle(shortName, zh) + "  (" + kind + ")");
         name.setTextSize(14);
         name.setTypeface(Typeface.DEFAULT_BOLD);
         name.setTextColor(getColor(R.color.text_primary));
@@ -308,6 +316,17 @@ public class ClassDetailActivity extends Activity {
             sb.append("  ").append(n.getName()).append('\n');
         }
         copy(sb.toString(), mClassName);
+    }
+
+    /** 主标题：英文名 + 中文名（中文用强调色显示） */
+    private CharSequence buildTitle(String en, String zh) {
+        if (zh == null || zh.isEmpty()) return en;
+        String text = en + "  " + zh;
+        SpannableString ss = new SpannableString(text);
+        ss.setSpan(new ForegroundColorSpan(getColor(R.color.accent)),
+                en.length() + 2, text.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return ss;
     }
 
     private int dp(float value) {
