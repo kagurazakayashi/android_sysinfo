@@ -11,8 +11,10 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -91,7 +93,8 @@ public class MainActivity extends Activity {
         String shortName = className.substring(className.lastIndexOf('.') + 1);
 
         LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
         card.setPadding(dp(14), dp(10), dp(14), dp(10));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -104,6 +107,11 @@ public class MainActivity extends Activity {
         getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
         card.setForeground(getDrawable(ripple.resourceId));
         card.setClickable(true);
+
+        // 左侧：标题 + 副标题
+        LinearLayout left = new LinearLayout(this);
+        left.setOrientation(LinearLayout.VERTICAL);
+        left.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView title = new TextView(this);
         title.setText(buildTitle(shortName, ZhNames.classZh(className)));
@@ -122,8 +130,19 @@ public class MainActivity extends Activity {
         sub.setTextColor(getColor(R.color.text_sub));
         sub.setPadding(0, dp(3), 0, 0);
 
-        card.addView(title);
-        card.addView(sub);
+        left.addView(title);
+        left.addView(sub);
+
+        // 右侧：进入箭头
+        ImageView arrow = new ImageView(this);
+        arrow.setImageResource(R.drawable.ic_chevron_right);
+        arrow.setColorFilter(getColor(R.color.text_sub));
+        LinearLayout.LayoutParams arrowLp = new LinearLayout.LayoutParams(dp(24), dp(24));
+        arrowLp.setMargins(dp(8), 0, 0, 0);
+        arrow.setLayoutParams(arrowLp);
+
+        card.addView(left);
+        card.addView(arrow);
         card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

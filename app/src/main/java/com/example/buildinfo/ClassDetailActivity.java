@@ -1,9 +1,11 @@
 package com.example.buildinfo;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -11,9 +13,11 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -213,17 +217,64 @@ public class ClassDetailActivity extends Activity {
         card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String text = mClassName + "." + f.name + " = " + f.value;
-                copy(text, f.name);
+                showFieldCopyMenu(f);
             }
         });
         return card;
     }
 
+    /** 字段点击：弹出选择菜单，让用户选择复制哪部分内容 */
+    private void showFieldCopyMenu(final OsInfo.FieldInfo f) {
+        final String fullName = mClassName + "." + f.name;  // 含完整包名类名前缀
+        final String shortName = f.name;                     // 仅字段名
+        final String zhName = ZhNames.fieldZh(f.name);       // 中文名（可能为 null）
+        final String val = f.value;                          // 当前值
+
+        final String[] items;
+        final String[] payloads;
+        if (zhName == null) {
+            items = new String[]{
+                    "复制原始名称",
+                    "复制值",
+                    "复制完整条目"
+            };
+            payloads = new String[]{
+                    fullName,
+                    val,
+                    fullName + " = " + val
+            };
+        } else {
+            items = new String[]{
+                    "复制原始名称",
+                    "复制中文名",
+                    "复制值",
+                    "复制完整条目"
+            };
+            payloads = new String[]{
+                    fullName,
+                    zhName,
+                    val,
+                    fullName + "（" + zhName + "） = " + val
+            };
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(f.name)
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        copy(payloads[which], items[which]);
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
+    }
+
     /** 嵌套类条目：点击进入该类的详情页 */
     private View createNestedView(final Class<?> n) {
         LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
         card.setPadding(dp(12), dp(8), dp(12), dp(8));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -241,6 +292,11 @@ public class ClassDetailActivity extends Activity {
         String zh = ZhNames.classZh(n.getName());
         if (zh == null) zh = ZhNames.nestedZh(shortName);
 
+        // 左侧：名称 + 全名
+        LinearLayout left = new LinearLayout(this);
+        left.setOrientation(LinearLayout.VERTICAL);
+        left.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
         TextView name = new TextView(this);
         name.setText(buildTitle(shortName, zh) + "  (" + kind + ")");
         name.setTextSize(14);
@@ -253,8 +309,19 @@ public class ClassDetailActivity extends Activity {
         full.setTypeface(Typeface.MONOSPACE);
         full.setTextColor(getColor(R.color.text_sub));
 
-        card.addView(name);
-        card.addView(full);
+        left.addView(name);
+        left.addView(full);
+
+        // 右侧：进入箭头
+        ImageView arrow = new ImageView(this);
+        arrow.setImageResource(R.drawable.ic_chevron_right);
+        arrow.setColorFilter(getColor(R.color.text_sub));
+        LinearLayout.LayoutParams arrowLp = new LinearLayout.LayoutParams(dp(24), dp(24));
+        arrowLp.setMargins(dp(8), 0, 0, 0);
+        arrow.setLayoutParams(arrowLp);
+
+        card.addView(left);
+        card.addView(arrow);
         card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
