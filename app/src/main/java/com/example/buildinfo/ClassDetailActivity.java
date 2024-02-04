@@ -1,7 +1,6 @@
 package com.example.buildinfo;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -14,6 +13,7 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +21,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -34,7 +38,7 @@ import java.util.List;
  * 类详情页：展示某个类的类型信息、全部 public 静态字段及当前值、
  * 以及嵌套类/接口列表（点击可继续深入查看）。
  */
-public class ClassDetailActivity extends Activity {
+public class ClassDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_CLASS = "class_name";
 
@@ -54,31 +58,18 @@ public class ClassDetailActivity extends Activity {
         }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         String shortName = mClassName.substring(mClassName.lastIndexOf('.') + 1);
         toolbar.setTitle(buildTitle(shortName, ZhNames.classZh(mClassName)));
         toolbar.setSubtitle(mClassName);
-        toolbar.inflateMenu(R.menu.menu_detail);
-
-        // 顶部栏返回按钮（详情页：点击返回上一级；使用系统主题的标准 Material 返回箭头）
-        TypedValue navArrow = new TypedValue();
-        if (getTheme().resolveAttribute(android.R.attr.homeAsUpIndicator, navArrow, true)) {
-            toolbar.setNavigationIcon(navArrow.resourceId);
+        // 系统标准返回箭头（由 AppCompat 主题自动提供，点击返回上一级）
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        toolbar.setNavigationContentDescription("返回");
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
-            }
-        });
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == R.id.action_copy_all) {
-                    copyAll();
-                    return true;
-                }
-                return false;
             }
         });
 
@@ -141,6 +132,21 @@ public class ClassDetailActivity extends Activity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_detail, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_copy_all) {
+            copyAll();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     /** 分段标题 */
     private View sectionTitle(String text) {
         TextView tv = new TextView(this);
@@ -176,10 +182,11 @@ public class ClassDetailActivity extends Activity {
         return row;
     }
 
-    /** 字段卡片：点击复制该字段行 */
+    /** 字段卡片：点击弹出复制菜单（带图标 + 中文标题） */
     private View createFieldView(final OsInfo.FieldInfo f) {
         LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
         card.setPadding(dp(12), dp(8), dp(12), dp(8));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -191,6 +198,21 @@ public class ClassDetailActivity extends Activity {
         getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
         card.setForeground(getDrawable(ripple.resourceId));
         card.setClickable(true);
+
+        // 左侧：图标（按字段名分配语义图标）
+        ImageView icon = new ImageView(this);
+        String iconName = Icons.fieldIcon(f.name);
+        icon.setImageResource(getResources().getIdentifier(iconName, "drawable", getPackageName()));
+        icon.setBackgroundResource(R.drawable.ic_icon_bg);
+        icon.setColorFilter(getColor(R.color.primary));
+        LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(36), dp(36));
+        iconLp.setMargins(0, 0, dp(12), 0);
+        icon.setLayoutParams(iconLp);
+
+        // 中部：名称(英文+中文) + 类型 + 值
+        LinearLayout left = new LinearLayout(this);
+        left.setOrientation(LinearLayout.VERTICAL);
+        left.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView name = new TextView(this);
         name.setText(buildTitle(f.name, ZhNames.fieldZh(f.name)));
@@ -211,9 +233,12 @@ public class ClassDetailActivity extends Activity {
         value.setPadding(0, dp(4), 0, 0);
         value.setTextIsSelectable(true);
 
-        card.addView(name);
-        card.addView(type);
-        card.addView(value);
+        left.addView(name);
+        left.addView(type);
+        left.addView(value);
+
+        card.addView(icon);
+        card.addView(left);
         card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -258,7 +283,7 @@ public class ClassDetailActivity extends Activity {
             };
         }
 
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setTitle(f.name)
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override
@@ -292,7 +317,17 @@ public class ClassDetailActivity extends Activity {
         String zh = ZhNames.classZh(n.getName());
         if (zh == null) zh = ZhNames.nestedZh(shortName);
 
-        // 左侧：名称 + 全名
+        // 左侧：图标（圆形背景 + 主色 Material 图标）
+        ImageView icon = new ImageView(this);
+        String iconName = Icons.iconName(n.getName());
+        icon.setImageResource(getResources().getIdentifier(iconName, "drawable", getPackageName()));
+        icon.setBackgroundResource(R.drawable.ic_icon_bg);
+        icon.setColorFilter(getColor(R.color.primary));
+        LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(36), dp(36));
+        iconLp.setMargins(0, 0, dp(12), 0);
+        icon.setLayoutParams(iconLp);
+
+        // 中部：名称 + 全名
         LinearLayout left = new LinearLayout(this);
         left.setOrientation(LinearLayout.VERTICAL);
         left.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
@@ -320,6 +355,7 @@ public class ClassDetailActivity extends Activity {
         arrowLp.setMargins(dp(8), 0, 0, 0);
         arrow.setLayoutParams(arrowLp);
 
+        card.addView(icon);
         card.addView(left);
         card.addView(arrow);
         card.setOnClickListener(new View.OnClickListener() {

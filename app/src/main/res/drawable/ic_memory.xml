@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material 内存芯片图标 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M15,9H9v6h6V9zM22,7V5h-3V2h-2v3h-2V2h-2v3h-2V2H9v3H7V2H5v3H2v2h3v2H2v2h3v2H2v2h3v2H2v2h3v3h2v-3h2v3h2v-3h2v3h2v-3h2v3h2v-3h3v-2h-3v-2h3v-2h-3v-2h3V9h-3V7h3z" />
+</vector>

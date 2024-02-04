@@ -25,3 +25,8 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 }
+
+dependencies {
+    // Material Components（含 AppCompat / AndroidX 传递依赖）
+    implementation 'com.google.android.material:material:1.12.0'
+}

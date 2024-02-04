@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material 振动图标 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M0,15h2L2,9L0,9v6zM3,17h2L5,7L3,7v10zM19,7v10h2L21,7h-2zM22,9v6h2L24,9h-2zM16,3L8,3c-1.1,0 -2,0.9 -2,2v14c0,1.1 0.9,2 2,2h8c1.1,0 2,-0.9 2,-2L18,5c0,-1.1 -0.9,-2 -2,-2zM16,19L8,19L8,5h8v14z" />
+</vector>

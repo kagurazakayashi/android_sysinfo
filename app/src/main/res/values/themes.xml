@@ -1,11 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
+    <!-- Material Components (Material 3) 主题 -->
+    <style name="AppTheme" parent="Theme.Material3.Light.NoActionBar">
+        <!-- 品牌色 -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorPrimaryContainer">#D8E7FB</item>
+        <item name="colorOnPrimaryContainer">#0B3D91</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorOnSecondary">@android:color/white</item>
+        <item name="colorSecondaryContainer">#D3F2E2</item>
+        <item name="colorOnSecondaryContainer">#0A4A2B</item>
         <item name="android:colorPrimary">@color/primary</item>
-        <item name="android:colorPrimaryDark">@color/primary_dark</item>
         <item name="android:colorAccent">@color/accent</item>
+        <!-- 状态栏透明，让内容延伸到状态栏（含挖孔）区域 -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@color/background</item>
+        <!-- Material 组件默认样式 -->
+        <item name="materialAlertDialogTheme">@style/AppDialog</item>
+        <item name="materialCardViewStyle">@style/AppCard</item>
+    </style>
+
+    <!-- 卡片样式 -->
+    <style name="AppCard" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">1dp</item>
+        <item name="cardBackgroundColor">@color/card_bg</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <!-- 对话框样式（Material 3 圆角） -->
+    <style name="AppDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/AppDialogShape</item>
+    </style>
+    <style name="AppDialogShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
     </style>
 </resources>

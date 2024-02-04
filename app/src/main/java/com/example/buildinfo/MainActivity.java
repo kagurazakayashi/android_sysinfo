@@ -1,8 +1,8 @@
 package com.example.buildinfo;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
+import android.content.ClipboardManager;
+import android.content.ClipData;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,24 +12,26 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 根界面：android.os 包的全部顶层类列表。
  * 点击任意类进入其详情（静态字段 + 嵌套类，可继续逐级深入）。
  */
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private LinearLayout mContainer;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -40,15 +42,13 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         toolbar.setTitle("android.os 包信息");
         toolbar.setSubtitle("共 " + OsClasses.TOP_LEVEL.length + " 个类 · 点击查看该类信息");
-
-        // 顶部栏返回按钮（主界面：点击退出应用；使用系统主题的标准 Material 返回箭头）
-        TypedValue navArrow = new TypedValue();
-        if (getTheme().resolveAttribute(android.R.attr.homeAsUpIndicator, navArrow, true)) {
-            toolbar.setNavigationIcon(navArrow.resourceId);
+        // 主界面返回按钮：点击退出应用
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        toolbar.setNavigationContentDescription("返回");
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,6 +88,36 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_copy_all) {
+            copyAll();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /** 复制全部类名到剪贴板 */
+    private void copyAll() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("android.os 包全部类（").append(OsClasses.TOP_LEVEL.length).append(" 个）\n");
+        for (String name : OsClasses.TOP_LEVEL) {
+            String zh = ZhNames.classZh(name);
+            sb.append(name);
+            if (zh != null) sb.append("  ").append(zh);
+            sb.append('\n');
+        }
+        android.content.ClipboardManager cm =
+                (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        cm.setPrimaryClip(android.content.ClipData.newPlainText("android.os 类列表", sb.toString()));        Toast.makeText(this, "已复制全部类名", Toast.LENGTH_SHORT).show();
+    }
+
     /** 生成一个类条目（可点击进入详情） */
     private View createClassItem(final String className, int fieldCount, int nestedCount) {
         String shortName = className.substring(className.lastIndexOf('.') + 1);
@@ -108,7 +138,17 @@ public class MainActivity extends Activity {
         card.setForeground(getDrawable(ripple.resourceId));
         card.setClickable(true);
 
-        // 左侧：标题 + 副标题
+        // 左侧：图标（圆形背景 + 主色 Material 图标）
+        ImageView icon = new ImageView(this);
+        String iconName = Icons.iconName(className);
+        icon.setImageResource(getResources().getIdentifier(iconName, "drawable", getPackageName()));
+        icon.setBackgroundResource(R.drawable.ic_icon_bg);
+        icon.setColorFilter(getColor(R.color.primary));
+        LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(40), dp(40));
+        iconLp.setMargins(0, 0, dp(12), 0);
+        icon.setLayoutParams(iconLp);
+
+        // 中部：标题 + 副标题
         LinearLayout left = new LinearLayout(this);
         left.setOrientation(LinearLayout.VERTICAL);
         left.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
@@ -141,6 +181,7 @@ public class MainActivity extends Activity {
         arrowLp.setMargins(dp(8), 0, 0, 0);
         arrow.setLayoutParams(arrowLp);
 
+        card.addView(icon);
         card.addView(left);
         card.addView(arrow);
         card.setOnClickListener(new View.OnClickListener() {
