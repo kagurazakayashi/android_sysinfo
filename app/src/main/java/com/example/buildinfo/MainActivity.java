@@ -3,6 +3,8 @@ package com.example.buildinfo;
 import android.content.Intent;
 import android.content.ClipboardManager;
 import android.content.ClipData;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,7 +26,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.material.materialswitch.MaterialSwitch;
+
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -33,7 +39,31 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MainActivity extends AppCompatActivity {
 
+    private static final String PREFS = "main_filter";
+    private static final String KEY_HIDE_EMPTY = "hide_empty";
+
+    /** 类条目数据：用于开关过滤 */
+    private static class Entry {
+        final String className;
+        final int fieldCount;
+        final int nestedCount;
+        final View view;
+        Entry(String className, int fieldCount, int nestedCount, View view) {
+            this.className = className;
+            this.fieldCount = fieldCount;
+            this.nestedCount = nestedCount;
+            this.view = view;
+        }
+        /** 是否为空项（无静态字段且无嵌套类）；无法加载的类不视为空 */
+        boolean isEmpty() {
+            return fieldCount >= 0 && fieldCount == 0 && nestedCount == 0;
+        }
+    }
+
     private LinearLayout mContainer;
+    private MaterialSwitch mSwitchFilter;
+    private final List<Entry> mEntries = new ArrayList<>();
+    private boolean mHideEmpty;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     @Override
@@ -57,6 +87,19 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mContainer = findViewById(R.id.container);
+        mSwitchFilter = findViewById(R.id.switch_filter_empty);
+        mHideEmpty = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getBoolean(KEY_HIDE_EMPTY, false);
+        mSwitchFilter.setChecked(mHideEmpty);
+        mSwitchFilter.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(android.widget.CompoundButton buttonView, boolean isChecked) {
+                mHideEmpty = isChecked;
+                getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                        .edit().putBoolean(KEY_HIDE_EMPTY, isChecked).apply();
+                applyFilter();
+            }
+        });
 
         // 后台线程逐个统计各类的字段数 / 嵌套类数（避免主线程卡顿）
         final AtomicInteger done = new AtomicInteger(0);
@@ -79,13 +122,33 @@ public class MainActivity extends AppCompatActivity {
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
+                        mEntries.clear();
                         for (int i = 0; i < names.length; i++) {
-                            mContainer.addView(createClassItem(names[i], fieldCounts[i], nestedCounts[i]));
+                            View v = createClassItem(names[i], fieldCounts[i], nestedCounts[i]);
+                            mContainer.addView(v);
+                            mEntries.add(new Entry(names[i], fieldCounts[i], nestedCounts[i], v));
                         }
+                        applyFilter();
                     }
                 });
             }
         }).start();
+    }
+
+    /** 根据开关状态过滤空项 */
+    private void applyFilter() {
+        int visible = 0;
+        for (Entry e : mEntries) {
+            boolean show = !(mHideEmpty && e.isEmpty());
+            e.view.setVisibility(show ? View.VISIBLE : View.GONE);
+            if (show) visible++;
+        }
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        if (mHideEmpty) {
+            toolbar.setSubtitle("显示 " + visible + " / " + mEntries.size() + " 个类 · 点击查看该类信息");
+        } else {
+            toolbar.setSubtitle("共 " + mEntries.size() + " 个类 · 点击查看该类信息");
+        }
     }
 
     @Override
