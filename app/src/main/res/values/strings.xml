@@ -3,4 +3,7 @@
     <string name="app_name">Build 版本信息</string>
     <string name="title_main">android.os 包信息</string>
     <string name="copy_all">复制全部</string>
+    <string name="favorites">收藏夹</string>
+    <string name="action_favorites">收藏夹</string>
+    <string name="favorites_empty">还没有收藏任何字段\n\n在任意字段的菜单中选择「收藏」即可添加</string>
 </resources>

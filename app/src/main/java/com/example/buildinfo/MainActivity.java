@@ -71,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 首次启动预置默认收藏（制造商/型号/Android版本号/API版本号）
+        FavoritesStore.ensureDefaults(this);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("android.os 包信息");
@@ -159,6 +162,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_favorites) {
+            startActivity(new Intent(this, FavoritesActivity.class));
+            return true;
+        }
         if (item.getItemId() == R.id.action_copy_all) {
             copyAll();
             return true;

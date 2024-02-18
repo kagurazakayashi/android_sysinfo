@@ -248,12 +248,15 @@ public class ClassDetailActivity extends AppCompatActivity {
         return card;
     }
 
-    /** 字段点击：弹出选择菜单，让用户选择复制哪部分内容 */
+    /** 字段点击：弹出选择菜单，让用户选择复制哪部分内容（含收藏） */
     private void showFieldCopyMenu(final OsInfo.FieldInfo f) {
         final String fullName = mClassName + "." + f.name;  // 含完整包名类名前缀
         final String shortName = f.name;                     // 仅字段名
         final String zhName = ZhNames.fieldZh(f.name);       // 中文名（可能为 null）
         final String val = f.value;                          // 当前值
+
+        final boolean isFav = FavoritesStore.contains(this, mClassName, f.name);
+        final String favLabel = isFav ? "取消收藏" : "收藏";
 
         final String[] items;
         final String[] payloads;
@@ -261,25 +264,29 @@ public class ClassDetailActivity extends AppCompatActivity {
             items = new String[]{
                     "复制原始名称",
                     "复制值",
-                    "复制完整条目"
+                    "复制完整条目",
+                    favLabel
             };
             payloads = new String[]{
                     fullName,
                     val,
-                    fullName + " = " + val
+                    fullName + " = " + val,
+                    null
             };
         } else {
             items = new String[]{
                     "复制原始名称",
                     "复制中文名",
                     "复制值",
-                    "复制完整条目"
+                    "复制完整条目",
+                    favLabel
             };
             payloads = new String[]{
                     fullName,
                     zhName,
                     val,
-                    fullName + "（" + zhName + "） = " + val
+                    fullName + "（" + zhName + "） = " + val,
+                    null
             };
         }
 
@@ -288,7 +295,18 @@ public class ClassDetailActivity extends AppCompatActivity {
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        copy(payloads[which], items[which]);
+                        if (which == items.length - 1) {
+                            // 最后一项：收藏 / 取消收藏
+                            if (isFav) {
+                                FavoritesStore.remove(ClassDetailActivity.this, mClassName, f.name);
+                                Toast.makeText(ClassDetailActivity.this, "已取消收藏：" + f.name, Toast.LENGTH_SHORT).show();
+                            } else {
+                                FavoritesStore.add(ClassDetailActivity.this, mClassName, f.name, f.value);
+                                Toast.makeText(ClassDetailActivity.this, "已收藏：" + f.name, Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            copy(payloads[which], items[which]);
+                        }
                     }
                 })
                 .setNegativeButton("取消", null)
