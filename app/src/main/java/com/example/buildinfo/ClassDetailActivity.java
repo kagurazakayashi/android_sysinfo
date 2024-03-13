@@ -42,6 +42,10 @@ public class ClassDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_CLASS = "class_name";
 
+    /** 全局过滤开关的偏好键（与 MainActivity 保持一致） */
+    private static final String PREFS_FILTER = "main_filter";
+    private static final String KEY_HIDE_EMPTY = "hide_empty";
+
     private String mClassName;
     private List<OsInfo.FieldInfo> mFields;
     private List<Class<?>> mNested;
@@ -122,11 +126,24 @@ public class ClassDetailActivity extends AppCompatActivity {
         } catch (Throwable t) {
             mNested = new ArrayList<>();
         }
-        container.addView(sectionTitle("嵌套类 / 接口（" + mNested.size() + "）"));
-        if (mNested.isEmpty()) {
-            container.addView(emptyHint("没有嵌套类"));
+
+        // 全局开关：过滤“静态字段”和“嵌套类/接口”都为 0 的嵌套类条目
+        final boolean hideEmpty = getSharedPreferences(PREFS_FILTER, Context.MODE_PRIVATE)
+                .getBoolean(KEY_HIDE_EMPTY, false);
+        List<Class<?>> shownNested = new ArrayList<>();
+        if (hideEmpty) {
+            for (Class<?> n : mNested) {
+                if (!isEmptyEntry(n)) shownNested.add(n);
+            }
         } else {
-            for (final Class<?> n : mNested) {
+            shownNested.addAll(mNested);
+        }
+
+        container.addView(sectionTitle("嵌套类 / 接口（" + shownNested.size() + "）"));
+        if (shownNested.isEmpty()) {
+            container.addView(emptyHint(mNested.isEmpty() ? "没有嵌套类" : "已按全局开关隐藏所有空条目"));
+        } else {
+            for (final Class<?> n : shownNested) {
                 container.addView(createNestedView(n));
             }
         }
@@ -385,6 +402,18 @@ public class ClassDetailActivity extends AppCompatActivity {
             }
         });
         return card;
+    }
+
+    /** 判断条目是否为空：静态字段数 = 0 且 嵌套类数 = 0（与主页开关同规则） */
+    private boolean isEmptyEntry(Class<?> n) {
+        int fc = OsInfo.countStaticFields(n);
+        int nc;
+        try {
+            nc = n.getClasses().length;
+        } catch (Throwable t) {
+            nc = 0;
+        }
+        return fc >= 0 && fc == 0 && nc == 0;
     }
 
     private View emptyHint(String text) {
