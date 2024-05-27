@@ -13,8 +13,8 @@
         <item name="colorOnSecondaryContainer">#0A4A2B</item>
         <item name="android:colorPrimary">@color/primary</item>
         <item name="android:colorAccent">@color/accent</item>
-        <!-- 状态栏透明，让内容延伸到状态栏（含挖孔）区域 -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- 状态栏：填充为顶栏同色（API35+ edge-to-edge 下由顶栏背景延伸覆盖，此处兼容旧设备） -->
+        <item name="android:statusBarColor">@color/primary</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowBackground">@color/background</item>

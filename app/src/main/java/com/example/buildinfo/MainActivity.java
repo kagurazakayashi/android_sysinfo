@@ -76,8 +76,8 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setTitle("android.os 包信息");
-        toolbar.setSubtitle("共 " + OsClasses.TOP_LEVEL.length + " 个类 · 点击查看该类信息");
+        toolbar.setTitle("android.os");
+        toolbar.setSubtitle("加载中…");
         // 主界面返回按钮：点击退出应用
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -147,11 +147,7 @@ public class MainActivity extends AppCompatActivity {
             if (show) visible++;
         }
         Toolbar toolbar = findViewById(R.id.toolbar);
-        if (mHideEmpty) {
-            toolbar.setSubtitle("显示 " + visible + " / " + mEntries.size() + " 个类 · 点击查看该类信息");
-        } else {
-            toolbar.setSubtitle("共 " + mEntries.size() + " 个类 · 点击查看该类信息");
-        }
+        toolbar.setSubtitle("显示 " + visible + " / " + mEntries.size() + " 个类");
     }
 
     @Override

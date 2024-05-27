@@ -4,19 +4,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background"
-    android:fitsSystemWindows="true">
+    android:background="@color/background">
 
-    <!-- MaterialToolbar 顶栏：标题 + 复制全部图标按钮 -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <!-- AppBarLayout + MaterialToolbar：背景延伸至状态栏（含挖孔）区域，内容正常显示 -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
         android:background="@color/primary"
-        android:elevation="4dp"
-        app:titleTextColor="#FFFFFF"
-        app:subtitleTextColor="#B3FFFFFF"
-        app:title="@string/title_main" />
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/primary"
+            android:elevation="4dp"
+            app:titleTextColor="#FFFFFF"
+            app:subtitleTextColor="#B3FFFFFF"
+            app:navigationIconTint="#FFFFFF"
+            app:itemIconTint="#FFFFFF"
+            app:title="@string/title_main" />
+    </com.google.android.material.appbar.AppBarLayout>
 
     <!-- 全局开关：隐藏空项 -->
     <LinearLayout

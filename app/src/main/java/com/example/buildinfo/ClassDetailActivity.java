@@ -63,9 +63,10 @@ public class ClassDetailActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        String shortName = mClassName.substring(mClassName.lastIndexOf('.') + 1);
-        toolbar.setTitle(buildTitle(shortName, ZhNames.classZh(mClassName)));
-        toolbar.setSubtitle(mClassName);
+        // 大标题 = 当前包；小标题在字段/嵌套类统计完成后更新为“显示 X / Y 项”
+        String pkgName = mClassName.contains(".") ? mClassName.substring(0, mClassName.lastIndexOf('.')) : mClassName;
+        toolbar.setTitle(pkgName);
+        toolbar.setSubtitle("加载中…");
         // 系统标准返回箭头（由 AppCompat 主题自动提供，点击返回上一级）
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -138,6 +139,11 @@ public class ClassDetailActivity extends AppCompatActivity {
         } else {
             shownNested.addAll(mNested);
         }
+
+        // 小标题：显示 / 总计（字段 + 嵌套类）
+        int totalItems = mFields.size() + mNested.size();
+        int shownItems = mFields.size() + shownNested.size();
+        toolbar.setSubtitle("显示 " + shownItems + " / " + totalItems + " 项");
 
         container.addView(sectionTitle("嵌套类 / 接口（" + shownNested.size() + "）"));
         if (shownNested.isEmpty()) {

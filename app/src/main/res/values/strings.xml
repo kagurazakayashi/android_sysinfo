@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Build 版本信息</string>
+    <string name="app_name">系统常量</string>
     <string name="title_main">android.os 包信息</string>
     <string name="copy_all">复制全部</string>
     <string name="favorites">收藏夹</string>

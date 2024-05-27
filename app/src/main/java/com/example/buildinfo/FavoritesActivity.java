@@ -71,10 +71,10 @@ public class FavoritesActivity extends AppCompatActivity {
             empty.setGravity(Gravity.CENTER);
             empty.setPadding(dp(16), dp(48), dp(16), dp(16));
             container.addView(empty);
-            toolbarSubtitle("尚未收藏");
+            toolbarSubtitle("显示 0 / 0 项");
             return;
         }
-        toolbarSubtitle("共 " + favs.size() + " 项");
+        toolbarSubtitle("显示 " + favs.size() + " / " + favs.size() + " 项");
         for (final FavoritesStore.Favorite f : favs) {
             container.addView(createItem(f, container));
         }
@@ -102,10 +102,7 @@ public class FavoritesActivity extends AppCompatActivity {
         card.setForeground(getDrawable(ripple.resourceId));
         card.setClickable(true);
 
-        // 图标：星形 + 字段图标
-        LinearLayout iconWrap = new LinearLayout(this);
-        iconWrap.setOrientation(LinearLayout.VERTICAL);
-        iconWrap.setGravity(Gravity.CENTER);
+        // 图标：仅字段图标，不在图标下方叠加收藏夹星星
         ImageView icon = new ImageView(this);
         String iconName = Icons.fieldIcon(f.fieldName);
         icon.setImageResource(getResources().getIdentifier(iconName, "drawable", getPackageName()));
@@ -114,14 +111,6 @@ public class FavoritesActivity extends AppCompatActivity {
         LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(36), dp(36));
         iconLp.setMargins(0, 0, dp(12), 0);
         icon.setLayoutParams(iconLp);
-        iconWrap.addView(icon);
-        ImageView star = new ImageView(this);
-        star.setImageResource(R.drawable.ic_star);
-        star.setColorFilter(getColor(R.color.accent));
-        LinearLayout.LayoutParams starLp = new LinearLayout.LayoutParams(dp(14), dp(14));
-        starLp.setMargins(0, 0, dp(12), 0);
-        star.setLayoutParams(starLp);
-        iconWrap.addView(star);
 
         // 中部：字段名(中文) + 类名 + 值
         LinearLayout left = new LinearLayout(this);
@@ -152,7 +141,7 @@ public class FavoritesActivity extends AppCompatActivity {
         left.addView(clsName);
         left.addView(value);
 
-        card.addView(iconWrap);
+        card.addView(icon);
         card.addView(left);
         card.setOnClickListener(new View.OnClickListener() {
             @Override
