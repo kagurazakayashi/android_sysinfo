@@ -67,7 +67,7 @@ public class FavoritesActivity extends AppCompatActivity {
             TextView empty = new TextView(this);
             empty.setText(R.string.favorites_empty);
             empty.setTextSize(14);
-            empty.setTextColor(getColor(R.color.text_sub));
+            empty.setTextColor(Ui.color(this, R.color.text_sub));
             empty.setGravity(Gravity.CENTER);
             empty.setPadding(dp(16), dp(48), dp(16), dp(16));
             container.addView(empty);
@@ -95,7 +95,7 @@ public class FavoritesActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(0, dp(3), 0, dp(3));
         card.setLayoutParams(lp);
-        card.setBackgroundResource(R.drawable.card_bg);
+        card.setBackground(Ui.roundRectBg(this, R.color.card_bg, 12));
         card.setElevation(dp(1));
         TypedValue ripple = new TypedValue();
         getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
@@ -106,8 +106,8 @@ public class FavoritesActivity extends AppCompatActivity {
         ImageView icon = new ImageView(this);
         String iconName = Icons.fieldIcon(f.fieldName);
         icon.setImageResource(getResources().getIdentifier(iconName, "drawable", getPackageName()));
-        icon.setBackgroundResource(R.drawable.ic_icon_bg);
-        icon.setColorFilter(getColor(R.color.primary));
+        icon.setBackground(Ui.ovalBg(this, R.color.icon_bg));
+        icon.setColorFilter(Ui.color(this, R.color.primary));
         LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(36), dp(36));
         iconLp.setMargins(0, 0, dp(12), 0);
         icon.setLayoutParams(iconLp);
@@ -121,19 +121,19 @@ public class FavoritesActivity extends AppCompatActivity {
         name.setText(buildTitle(f.fieldName, ZhNames.fieldZh(f.fieldName)));
         name.setTextSize(14);
         name.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        name.setTextColor(getColor(R.color.primary));
+        name.setTextColor(Ui.color(this, R.color.primary));
 
         TextView clsName = new TextView(this);
         clsName.setText(f.className);
         clsName.setTextSize(11);
         clsName.setTypeface(Typeface.MONOSPACE);
-        clsName.setTextColor(getColor(R.color.text_sub));
+        clsName.setTextColor(Ui.color(this, R.color.text_sub));
 
         TextView value = new TextView(this);
         value.setText(f.value);
         value.setTextSize(14);
         value.setTypeface(Typeface.MONOSPACE);
-        value.setTextColor(getColor(R.color.text_primary));
+        value.setTextColor(Ui.color(this, R.color.text_primary));
         value.setPadding(0, dp(4), 0, 0);
         value.setTextIsSelectable(true);
 
@@ -219,7 +219,7 @@ public class FavoritesActivity extends AppCompatActivity {
         if (zh == null || zh.isEmpty()) return en;
         String text = en + "  " + zh;
         SpannableString ss = new SpannableString(text);
-        ss.setSpan(new ForegroundColorSpan(getColor(R.color.accent)),
+        ss.setSpan(new ForegroundColorSpan(Ui.color(this, R.color.accent)),
                 en.length() + 2, text.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return ss;

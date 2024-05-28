@@ -176,7 +176,7 @@ public class ClassDetailActivity extends AppCompatActivity {
         tv.setText(text);
         tv.setTextSize(14);
         tv.setTypeface(Typeface.DEFAULT_BOLD);
-        tv.setTextColor(getColor(R.color.accent));
+        tv.setTextColor(Ui.color(this, R.color.accent));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(0, dp(16), 0, dp(4));
@@ -192,13 +192,13 @@ public class ClassDetailActivity extends AppCompatActivity {
         TextView k = new TextView(this);
         k.setText(key);
         k.setTextSize(13);
-        k.setTextColor(getColor(R.color.text_sub));
+        k.setTextColor(Ui.color(this, R.color.text_sub));
         k.setLayoutParams(new LinearLayout.LayoutParams(dp(80), ViewGroup.LayoutParams.WRAP_CONTENT));
         TextView v = new TextView(this);
         v.setText(value);
         v.setTextSize(13);
         v.setTypeface(Typeface.MONOSPACE);
-        v.setTextColor(getColor(R.color.text_primary));
+        v.setTextColor(Ui.color(this, R.color.text_primary));
         v.setTextIsSelectable(true);
         row.addView(k);
         row.addView(v);
@@ -215,7 +215,7 @@ public class ClassDetailActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(0, dp(3), 0, dp(3));
         card.setLayoutParams(lp);
-        card.setBackgroundResource(R.drawable.card_bg);
+        card.setBackground(Ui.roundRectBg(this, R.color.card_bg, 12));
         card.setElevation(dp(1));
         TypedValue ripple = new TypedValue();
         getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
@@ -226,8 +226,8 @@ public class ClassDetailActivity extends AppCompatActivity {
         ImageView icon = new ImageView(this);
         String iconName = Icons.fieldIcon(f.name);
         icon.setImageResource(getResources().getIdentifier(iconName, "drawable", getPackageName()));
-        icon.setBackgroundResource(R.drawable.ic_icon_bg);
-        icon.setColorFilter(getColor(R.color.primary));
+        icon.setBackground(Ui.ovalBg(this, R.color.icon_bg));
+        icon.setColorFilter(Ui.color(this, R.color.primary));
         LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(36), dp(36));
         iconLp.setMargins(0, 0, dp(12), 0);
         icon.setLayoutParams(iconLp);
@@ -241,18 +241,18 @@ public class ClassDetailActivity extends AppCompatActivity {
         name.setText(buildTitle(f.name, ZhNames.fieldZh(f.name)));
         name.setTextSize(14);
         name.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        name.setTextColor(getColor(R.color.primary));
+        name.setTextColor(Ui.color(this, R.color.primary));
 
         TextView type = new TextView(this);
         type.setText("类型：" + f.type);
         type.setTextSize(11);
-        type.setTextColor(getColor(R.color.text_sub));
+        type.setTextColor(Ui.color(this, R.color.text_sub));
 
         TextView value = new TextView(this);
         value.setText(f.value);
         value.setTextSize(14);
         value.setTypeface(Typeface.MONOSPACE);
-        value.setTextColor(getColor(R.color.text_primary));
+        value.setTextColor(Ui.color(this, R.color.text_primary));
         value.setPadding(0, dp(4), 0, 0);
         value.setTextIsSelectable(true);
 
@@ -346,7 +346,7 @@ public class ClassDetailActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(0, dp(3), 0, dp(3));
         card.setLayoutParams(lp);
-        card.setBackgroundResource(R.drawable.card_bg);
+        card.setBackground(Ui.roundRectBg(this, R.color.card_bg, 12));
         card.setElevation(dp(1));
         TypedValue ripple = new TypedValue();
         getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
@@ -362,8 +362,8 @@ public class ClassDetailActivity extends AppCompatActivity {
         ImageView icon = new ImageView(this);
         String iconName = Icons.iconName(n.getName());
         icon.setImageResource(getResources().getIdentifier(iconName, "drawable", getPackageName()));
-        icon.setBackgroundResource(R.drawable.ic_icon_bg);
-        icon.setColorFilter(getColor(R.color.primary));
+        icon.setBackground(Ui.ovalBg(this, R.color.icon_bg));
+        icon.setColorFilter(Ui.color(this, R.color.primary));
         LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(36), dp(36));
         iconLp.setMargins(0, 0, dp(12), 0);
         icon.setLayoutParams(iconLp);
@@ -377,13 +377,13 @@ public class ClassDetailActivity extends AppCompatActivity {
         name.setText(buildTitle(shortName, zh) + "  (" + kind + ")");
         name.setTextSize(14);
         name.setTypeface(Typeface.DEFAULT_BOLD);
-        name.setTextColor(getColor(R.color.text_primary));
+        name.setTextColor(Ui.color(this, R.color.text_primary));
 
         TextView full = new TextView(this);
         full.setText(n.getName());
         full.setTextSize(11);
         full.setTypeface(Typeface.MONOSPACE);
-        full.setTextColor(getColor(R.color.text_sub));
+        full.setTextColor(Ui.color(this, R.color.text_sub));
 
         left.addView(name);
         left.addView(full);
@@ -391,7 +391,7 @@ public class ClassDetailActivity extends AppCompatActivity {
         // 右侧：进入箭头
         ImageView arrow = new ImageView(this);
         arrow.setImageResource(R.drawable.ic_chevron_right);
-        arrow.setColorFilter(getColor(R.color.text_sub));
+        arrow.setColorFilter(Ui.color(this, R.color.text_sub));
         LinearLayout.LayoutParams arrowLp = new LinearLayout.LayoutParams(dp(24), dp(24));
         arrowLp.setMargins(dp(8), 0, 0, 0);
         arrow.setLayoutParams(arrowLp);
@@ -426,7 +426,7 @@ public class ClassDetailActivity extends AppCompatActivity {
         TextView tv = new TextView(this);
         tv.setText(text);
         tv.setTextSize(13);
-        tv.setTextColor(getColor(R.color.text_sub));
+        tv.setTextColor(Ui.color(this, R.color.text_sub));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(0, dp(4), 0, dp(8));
@@ -438,7 +438,7 @@ public class ClassDetailActivity extends AppCompatActivity {
         TextView tv = new TextView(this);
         tv.setText(msg);
         tv.setTextSize(14);
-        tv.setTextColor(getColor(R.color.text_primary));
+        tv.setTextColor(Ui.color(this, R.color.text_primary));
         tv.setPadding(dp(16), dp(24), dp(16), dp(24));
         container.addView(tv);
     }
@@ -479,7 +479,7 @@ public class ClassDetailActivity extends AppCompatActivity {
         if (zh == null || zh.isEmpty()) return en;
         String text = en + "  " + zh;
         SpannableString ss = new SpannableString(text);
-        ss.setSpan(new ForegroundColorSpan(getColor(R.color.accent)),
+        ss.setSpan(new ForegroundColorSpan(Ui.color(this, R.color.accent)),
                 en.length() + 2, text.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return ss;

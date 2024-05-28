@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.setMargins(0, dp(4), 0, dp(4));
         card.setLayoutParams(lp);
-        card.setBackgroundResource(R.drawable.card_bg);
+        card.setBackground(Ui.roundRectBg(this, R.color.card_bg, 12));
         card.setElevation(dp(1));
 
         TypedValue ripple = new TypedValue();
@@ -208,8 +208,8 @@ public class MainActivity extends AppCompatActivity {
         ImageView icon = new ImageView(this);
         String iconName = Icons.iconName(className);
         icon.setImageResource(getResources().getIdentifier(iconName, "drawable", getPackageName()));
-        icon.setBackgroundResource(R.drawable.ic_icon_bg);
-        icon.setColorFilter(getColor(R.color.primary));
+        icon.setBackground(Ui.ovalBg(this, R.color.icon_bg));
+        icon.setColorFilter(Ui.color(this, R.color.primary));
         LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(40), dp(40));
         iconLp.setMargins(0, 0, dp(12), 0);
         icon.setLayoutParams(iconLp);
@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
         title.setText(buildTitle(shortName, ZhNames.classZh(className)));
         title.setTextSize(16);
         title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setTextColor(getColor(R.color.text_primary));
+        title.setTextColor(Ui.color(this, R.color.text_primary));
 
         TextView sub = new TextView(this);
         if (fieldCount >= 0) {
@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
         }
         sub.setTextSize(12);
         sub.setTypeface(Typeface.MONOSPACE);
-        sub.setTextColor(getColor(R.color.text_sub));
+        sub.setTextColor(Ui.color(this, R.color.text_sub));
         sub.setPadding(0, dp(3), 0, 0);
 
         left.addView(title);
@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         // 右侧：进入箭头
         ImageView arrow = new ImageView(this);
         arrow.setImageResource(R.drawable.ic_chevron_right);
-        arrow.setColorFilter(getColor(R.color.text_sub));
+        arrow.setColorFilter(Ui.color(this, R.color.text_sub));
         LinearLayout.LayoutParams arrowLp = new LinearLayout.LayoutParams(dp(24), dp(24));
         arrowLp.setMargins(dp(8), 0, 0, 0);
         arrow.setLayoutParams(arrowLp);
@@ -266,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
         if (zh == null || zh.isEmpty()) return en;
         String text = en + "  " + zh;
         SpannableString ss = new SpannableString(text);
-        ss.setSpan(new ForegroundColorSpan(getColor(R.color.accent)),
+        ss.setSpan(new ForegroundColorSpan(Ui.color(this, R.color.accent)),
                 en.length() + 2, text.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return ss;

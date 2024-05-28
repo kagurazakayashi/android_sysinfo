@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Material Components (Material 3) 主题 -->
-    <style name="AppTheme" parent="Theme.Material3.Light.NoActionBar">
-        <!-- 品牌色 -->
-        <item name="colorPrimary">@color/primary</item>
+    <!-- Material Components (Material 3) 亮色主题：Android 12+ 自动跟随系统动态取色（壁纸色）；低版本回退品牌色 -->
+    <style name="AppTheme" parent="Theme.Material3.DynamicColors.Light.NoActionBar">
+        <!-- 品牌色：仅在 Android 12 以下设备生效（12+ 被 DynamicColors 自动覆盖） -->
+        <item name="colorPrimary">@color/brand_primary</item>
         <item name="colorOnPrimary">@android:color/white</item>
         <item name="colorPrimaryContainer">#D8E7FB</item>
         <item name="colorOnPrimaryContainer">#0B3D91</item>
-        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondary">@color/brand_accent</item>
         <item name="colorOnSecondary">@android:color/white</item>
         <item name="colorSecondaryContainer">#D3F2E2</item>
         <item name="colorOnSecondaryContainer">#0A4A2B</item>
-        <item name="android:colorPrimary">@color/primary</item>
-        <item name="android:colorAccent">@color/accent</item>
-        <!-- 状态栏：填充为顶栏同色（API35+ edge-to-edge 下由顶栏背景延伸覆盖，此处兼容旧设备） -->
-        <item name="android:statusBarColor">@color/primary</item>
+        <!-- 表面色：统一为偏蓝的浅灰，避免 Material 默认的紫调 -->
+        <item name="colorSurfaceContainerLow">#F2F4F7</item>
+        <item name="colorSurfaceContainerLowest">#FFFFFF</item>
+        <!-- 状态栏：与顶栏同色（API35+ edge-to-edge 下由顶栏背景延伸覆盖，此处兼容旧设备） -->
+        <item name="android:statusBarColor">@color/brand_primary</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowBackground">@color/background</item>
+        <item name="android:windowBackground">?attr/colorSurface</item>
         <!-- Material 组件默认样式 -->
         <item name="materialAlertDialogTheme">@style/AppDialog</item>
         <item name="materialCardViewStyle">@style/AppCard</item>
