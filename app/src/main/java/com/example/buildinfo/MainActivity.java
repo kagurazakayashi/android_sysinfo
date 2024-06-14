@@ -1,10 +1,12 @@
 package com.example.buildinfo;
 
-import android.content.Intent;
 import android.content.ClipboardManager;
 import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +28,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.lang.reflect.Field;
@@ -41,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String PREFS = "main_filter";
     private static final String KEY_HIDE_EMPTY = "hide_empty";
+
+    /** 语言偏好键（与 LocaleManager 一致） */
+    private static final String PREFS_LOCALE = "locale_prefs";
+    private static final String KEY_LOCALE = "locale";
 
     /** 类条目数据：用于开关过滤 */
     private static class Entry {
@@ -77,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("android.os");
-        toolbar.setSubtitle("加载中…");
+        toolbar.setSubtitle(getString(R.string.loading));
         // 主界面返回按钮：点击退出应用
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -88,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        // 语言切换后重建界面（让所有 TextView 重新加载资源）
+        LocaleManager.apply(this);
 
         mContainer = findViewById(R.id.container);
         mSwitchFilter = findViewById(R.id.switch_filter_empty);
@@ -147,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
             if (show) visible++;
         }
         Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setSubtitle("显示 " + visible + " / " + mEntries.size() + " 个类");
+        toolbar.setSubtitle(getString(R.string.subtitle_main, visible, mEntries.size()));
     }
 
     @Override
@@ -166,13 +176,17 @@ public class MainActivity extends AppCompatActivity {
             copyAll();
             return true;
         }
+        if (item.getItemId() == R.id.action_language) {
+            showLanguageDialog();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
     /** 复制全部类名到剪贴板 */
     private void copyAll() {
         StringBuilder sb = new StringBuilder();
-        sb.append("android.os 包全部类（").append(OsClasses.TOP_LEVEL.length).append(" 个）\n");
+        sb.append(getString(R.string.copy_all_header, OsClasses.TOP_LEVEL.length)).append('\n');
         for (String name : OsClasses.TOP_LEVEL) {
             String zh = ZhNames.classZh(name);
             sb.append(name);
@@ -181,7 +195,44 @@ public class MainActivity extends AppCompatActivity {
         }
         android.content.ClipboardManager cm =
                 (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        cm.setPrimaryClip(android.content.ClipData.newPlainText("android.os 类列表", sb.toString()));        Toast.makeText(this, "已复制全部类名", Toast.LENGTH_SHORT).show();
+        cm.setPrimaryClip(android.content.ClipData.newPlainText("android.os 类列表", sb.toString()));
+        Toast.makeText(this, getString(R.string.toast_copied_all_classes), Toast.LENGTH_SHORT).show();
+    }
+
+    /** 语言切换对话框 */
+    private void showLanguageDialog() {
+        final String current = getSharedPreferences(PREFS_LOCALE, Context.MODE_PRIVATE)
+                .getString(KEY_LOCALE, "");
+        final String[] labels = {
+                getString(R.string.lang_system),
+                getString(R.string.lang_zh_cn),
+                getString(R.string.lang_zh_tw),
+                getString(R.string.lang_en),
+                getString(R.string.lang_ja)
+        };
+        final String[] values = {"", "zh-rCN", "zh-rTW", "en", "ja"};
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_language)
+                .setSingleChoiceItems(labels, indexOf(values, current), new android.content.DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(android.content.DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        if (values[which].equals(current)) return;
+                        LocaleManager.setLocale(MainActivity.this, values[which]);
+                        // 重建当前界面（语言切换后刷新所有文案）
+                        recreate();
+                    }
+                })
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show();
+    }
+
+    private static int indexOf(String[] arr, String v) {
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].equals(v)) return i;
+        }
+        return 0;
     }
 
     /** 生成一个类条目（可点击进入详情） */
@@ -227,9 +278,9 @@ public class MainActivity extends AppCompatActivity {
 
         TextView sub = new TextView(this);
         if (fieldCount >= 0) {
-            sub.setText(className + "  ·  " + fieldCount + " 个静态字段 · " + nestedCount + " 个嵌套类");
+            sub.setText(className + "  ·  " + getString(R.string.copy_all_footer, fieldCount, nestedCount));
         } else {
-            sub.setText(className + "  ·  无法加载");
+            sub.setText(className + "  ·  " + getString(R.string.cannot_load));
         }
         sub.setTextSize(12);
         sub.setTypeface(Typeface.MONOSPACE);
@@ -270,6 +321,14 @@ public class MainActivity extends AppCompatActivity {
                 en.length() + 2, text.length(),
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         return ss;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // 系统语言变化时刷新界面
+        LocaleManager.apply(this);
+        recreate();
     }
 
     private int dp(float value) {

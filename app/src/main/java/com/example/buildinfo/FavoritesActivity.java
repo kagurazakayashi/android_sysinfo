@@ -36,6 +36,7 @@ public class FavoritesActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getString(R.string.favorites));
+        toolbar.setSubtitle(getString(R.string.loading));
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
@@ -71,10 +72,10 @@ public class FavoritesActivity extends AppCompatActivity {
             empty.setGravity(Gravity.CENTER);
             empty.setPadding(dp(16), dp(48), dp(16), dp(16));
             container.addView(empty);
-            toolbarSubtitle("显示 0 / 0 项");
+            toolbarSubtitle(getString(R.string.subtitle_favorites, 0, 0));
             return;
         }
-        toolbarSubtitle("显示 " + favs.size() + " / " + favs.size() + " 项");
+        toolbarSubtitle(getString(R.string.subtitle_favorites, favs.size(), favs.size()));
         for (final FavoritesStore.Favorite f : favs) {
             container.addView(createItem(f, container));
         }
@@ -159,10 +160,10 @@ public class FavoritesActivity extends AppCompatActivity {
         final String[] payloads;
         if (zhName == null) {
             items = new String[]{
-                    "复制原始名称",
-                    "复制值",
-                    "复制完整条目",
-                    "取消收藏"
+                    getString(R.string.menu_copy_raw_name),
+                    getString(R.string.menu_copy_value),
+                    getString(R.string.menu_copy_full_entry),
+                    getString(R.string.menu_remove_favorite)
             };
             payloads = new String[]{
                     f.className + "." + f.fieldName,
@@ -172,11 +173,11 @@ public class FavoritesActivity extends AppCompatActivity {
             };
         } else {
             items = new String[]{
-                    "复制原始名称",
-                    "复制中文名",
-                    "复制值",
-                    "复制完整条目",
-                    "取消收藏"
+                    getString(R.string.menu_copy_raw_name),
+                    getString(R.string.menu_copy_zh_name),
+                    getString(R.string.menu_copy_value),
+                    getString(R.string.menu_copy_full_entry),
+                    getString(R.string.menu_remove_favorite)
             };
             payloads = new String[]{
                     f.className + "." + f.fieldName,
@@ -195,7 +196,8 @@ public class FavoritesActivity extends AppCompatActivity {
                         if (which == items.length - 1) {
                             // 最后一项：取消收藏
                             FavoritesStore.remove(FavoritesActivity.this, f.className, f.fieldName);
-                            Toast.makeText(FavoritesActivity.this, "已取消收藏：" + f.fieldName, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(FavoritesActivity.this,
+                                    getString(R.string.toast_unfavorited, f.fieldName), Toast.LENGTH_SHORT).show();
                             container.removeAllViews();
                             render(container);
                         } else {
@@ -203,7 +205,7 @@ public class FavoritesActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .setNegativeButton("取消", null)
+                .setNegativeButton(getString(R.string.dialog_cancel), null)
                 .show();
     }
 
@@ -211,7 +213,7 @@ public class FavoritesActivity extends AppCompatActivity {
         android.content.ClipboardManager cm =
                 (android.content.ClipboardManager) getSystemService(android.content.Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(android.content.ClipData.newPlainText(label, text));
-        Toast.makeText(this, "已复制：" + label, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, getString(R.string.toast_copied, label), Toast.LENGTH_SHORT).show();
     }
 
     /** 主标题：英文名 + 中文名（中文用强调色显示） */

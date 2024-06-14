@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">システム情報定数</string>
+    <string name="title_main">android.os パッケージ</string>
+    <string name="copy_all">すべてコピー</string>
+    <string name="favorites">お気に入り</string>
+    <string name="action_favorites">お気に入り</string>
+    <string name="favorites_empty">お気に入りはまだありません\n\n任意のフィールドのメニューから「お気に入りに追加」を選択してください</string>
+
+    <!-- ツールバー副題 -->
+    <string name="loading">読み込み中…</string>
+    <string name="subtitle_main">%1$d / %2$d クラスを表示中</string>
+    <string name="subtitle_items">%1$d / %2$d 項目を表示中</string>
+    <string name="subtitle_favorites">%1$d / %1$d 項目</string>
+
+    <!-- グローバルスイッチ -->
+    <string name="filter_label">静的フィールドまたはネストクラスを含む項目のみ表示</string>
+
+    <!-- 言語切替 -->
+    <string name="action_language">言語</string>
+    <string name="dialog_language">言語を選択</string>
+    <string name="lang_system">システムに従う</string>
+    <string name="lang_zh_cn">简体中文</string>
+    <string name="lang_zh_tw">繁體中文</string>
+    <string name="lang_en">English</string>
+    <string name="lang_ja">日本語</string>
+
+    <!-- 詳細ページ -->
+    <string name="cannot_load_class">クラスを読み込めません：%1$s\n（非公開 API またはシステム制限の可能性）</string>
+    <string name="type_info">型情報</string>
+    <string name="row_kind">種類</string>
+    <string name="row_modifiers">修飾子</string>
+    <string name="row_package">パッケージ</string>
+    <string name="row_superclass">スーパークラス</string>
+    <string name="row_interfaces">実装インターフェース</string>
+    <string name="value_none">—</string>
+    <string name="value_none_en">なし</string>
+    <string name="kind_class">クラス</string>
+    <string name="kind_interface">インターフェース</string>
+    <string name="kind_enum">列挙型</string>
+    <string name="kind_annotation">アノテーション</string>
+    <string name="section_fields">静的フィールド（%1$d）</string>
+    <string name="no_public_fields">このクラスには読み取り可能な public 静的フィールドがありません</string>
+    <string name="section_nested">ネストクラス / インターフェース（%1$d）</string>
+    <string name="no_nested">ネストクラスはありません</string>
+    <string name="all_hidden_by_filter">グローバルフィルターにより空の項目はすべて非表示</string>
+    <string name="field_type">型：%1$s</string>
+
+    <!-- コピーメニュー -->
+    <string name="menu_copy_raw_name">元の名前をコピー</string>
+    <string name="menu_copy_zh_name">中国語名をコピー</string>
+    <string name="menu_copy_value">値をコピー</string>
+    <string name="menu_copy_full_entry">完全な項目をコピー</string>
+    <string name="menu_add_favorite">お気に入りに追加</string>
+    <string name="menu_remove_favorite">お気に入りから削除</string>
+    <string name="dialog_cancel">キャンセル</string>
+    <string name="toast_copied">コピーしました：%1$s</string>
+    <string name="toast_favorited">お気に入りに追加：%1$s</string>
+    <string name="toast_unfavorited">お気に入りから削除：%1$s</string>
+    <string name="toast_copied_all_classes">全クラス名をコピーしました</string>
+
+    <!-- ホームで全コピー -->
+    <string name="copy_all_header">android.os パッケージの全クラス（%1$d）</string>
+    <string name="copy_all_footer">%1$d 静的フィールド · %2$d ネストクラス</string>
+    <string name="cannot_load">読み込めません</string>
+</resources>

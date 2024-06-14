@@ -66,7 +66,7 @@ public class ClassDetailActivity extends AppCompatActivity {
         // 大标题 = 当前包；小标题在字段/嵌套类统计完成后更新为“显示 X / Y 项”
         String pkgName = mClassName.contains(".") ? mClassName.substring(0, mClassName.lastIndexOf('.')) : mClassName;
         toolbar.setTitle(pkgName);
-        toolbar.setSubtitle("加载中…");
+        toolbar.setSubtitle(getString(R.string.loading));
         // 系统标准返回箭头（由 AppCompat 主题自动提供，点击返回上一级）
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -82,32 +82,37 @@ public class ClassDetailActivity extends AppCompatActivity {
 
         Class<?> cls = OsInfo.loadClass(mClassName);
         if (cls == null) {
-            showMessage(container, "无法加载类：" + mClassName + "\n（可能是隐藏 API 或系统限制）");
+            showMessage(container, getString(R.string.cannot_load_class, mClassName));
             return;
         }
 
         // 类型信息
-        String kind = cls.isInterface() ? "接口" : (cls.isEnum() ? "枚举" : "类");
+        String kind = cls.isInterface() ? getString(R.string.kind_interface)
+                : (cls.isEnum() ? getString(R.string.kind_enum) : getString(R.string.kind_class));
         int mods = cls.getModifiers();
         StringBuilder modText = new StringBuilder();
         if (Modifier.isPublic(mods)) modText.append("public ");
         if (Modifier.isAbstract(mods) && !cls.isInterface()) modText.append("abstract ");
         if (Modifier.isFinal(mods)) modText.append("final ");
-        if (cls.isAnnotation()) kind = "注解";
-        container.addView(sectionTitle("类型信息"));
-        container.addView(infoRow("种类", kind));
-        container.addView(infoRow("修饰符", modText.toString().trim().isEmpty() ? "—" : modText.toString().trim()));
-        container.addView(infoRow("包", cls.getPackage() == null ? "—" : cls.getPackage().getName()));
+        if (cls.isAnnotation()) kind = getString(R.string.kind_annotation);
+        container.addView(sectionTitle(getString(R.string.type_info)));
+        container.addView(infoRow(getString(R.string.row_kind), kind));
+        container.addView(infoRow(getString(R.string.row_modifiers),
+                modText.toString().trim().isEmpty() ? getString(R.string.value_none) : modText.toString().trim()));
+        container.addView(infoRow(getString(R.string.row_package),
+                cls.getPackage() == null ? getString(R.string.value_none) : cls.getPackage().getName()));
         Class<?> superC = cls.getSuperclass();
-        container.addView(infoRow("父类", superC == null ? "—" : superC.getName()));
+        container.addView(infoRow(getString(R.string.row_superclass),
+                superC == null ? getString(R.string.value_none) : superC.getName()));
         Class<?>[] ifaces = cls.getInterfaces();
-        container.addView(infoRow("实现的接口", ifaces.length == 0 ? "无" : joinNames(ifaces)));
+        container.addView(infoRow(getString(R.string.row_interfaces),
+                ifaces.length == 0 ? getString(R.string.value_none_en) : joinNames(ifaces)));
 
         // 静态字段
         mFields = OsInfo.readStaticFields(cls);
-        container.addView(sectionTitle("静态字段（" + mFields.size() + "）"));
+        container.addView(sectionTitle(getString(R.string.section_fields, mFields.size())));
         if (mFields.isEmpty()) {
-            container.addView(emptyHint("该类没有可读取的 public 静态字段"));
+            container.addView(emptyHint(getString(R.string.no_public_fields)));
         } else {
             for (OsInfo.FieldInfo f : mFields) {
                 container.addView(createFieldView(f));
@@ -143,11 +148,13 @@ public class ClassDetailActivity extends AppCompatActivity {
         // 小标题：显示 / 总计（字段 + 嵌套类）
         int totalItems = mFields.size() + mNested.size();
         int shownItems = mFields.size() + shownNested.size();
-        toolbar.setSubtitle("显示 " + shownItems + " / " + totalItems + " 项");
+        toolbar.setSubtitle(getString(R.string.subtitle_items, shownItems, totalItems));
 
-        container.addView(sectionTitle("嵌套类 / 接口（" + shownNested.size() + "）"));
+        container.addView(sectionTitle(getString(R.string.section_nested, shownNested.size())));
         if (shownNested.isEmpty()) {
-            container.addView(emptyHint(mNested.isEmpty() ? "没有嵌套类" : "已按全局开关隐藏所有空条目"));
+            container.addView(emptyHint(mNested.isEmpty()
+                    ? getString(R.string.no_nested)
+                    : getString(R.string.all_hidden_by_filter)));
         } else {
             for (final Class<?> n : shownNested) {
                 container.addView(createNestedView(n));
@@ -244,7 +251,7 @@ public class ClassDetailActivity extends AppCompatActivity {
         name.setTextColor(Ui.color(this, R.color.primary));
 
         TextView type = new TextView(this);
-        type.setText("类型：" + f.type);
+        type.setText(getString(R.string.field_type, f.type));
         type.setTextSize(11);
         type.setTextColor(Ui.color(this, R.color.text_sub));
 
@@ -279,15 +286,15 @@ public class ClassDetailActivity extends AppCompatActivity {
         final String val = f.value;                          // 当前值
 
         final boolean isFav = FavoritesStore.contains(this, mClassName, f.name);
-        final String favLabel = isFav ? "取消收藏" : "收藏";
+        final String favLabel = getString(isFav ? R.string.menu_remove_favorite : R.string.menu_add_favorite);
 
         final String[] items;
         final String[] payloads;
         if (zhName == null) {
             items = new String[]{
-                    "复制原始名称",
-                    "复制值",
-                    "复制完整条目",
+                    getString(R.string.menu_copy_raw_name),
+                    getString(R.string.menu_copy_value),
+                    getString(R.string.menu_copy_full_entry),
                     favLabel
             };
             payloads = new String[]{
@@ -298,10 +305,10 @@ public class ClassDetailActivity extends AppCompatActivity {
             };
         } else {
             items = new String[]{
-                    "复制原始名称",
-                    "复制中文名",
-                    "复制值",
-                    "复制完整条目",
+                    getString(R.string.menu_copy_raw_name),
+                    getString(R.string.menu_copy_zh_name),
+                    getString(R.string.menu_copy_value),
+                    getString(R.string.menu_copy_full_entry),
                     favLabel
             };
             payloads = new String[]{
@@ -322,17 +329,19 @@ public class ClassDetailActivity extends AppCompatActivity {
                             // 最后一项：收藏 / 取消收藏
                             if (isFav) {
                                 FavoritesStore.remove(ClassDetailActivity.this, mClassName, f.name);
-                                Toast.makeText(ClassDetailActivity.this, "已取消收藏：" + f.name, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ClassDetailActivity.this,
+                                        getString(R.string.toast_unfavorited, f.name), Toast.LENGTH_SHORT).show();
                             } else {
                                 FavoritesStore.add(ClassDetailActivity.this, mClassName, f.name, f.value);
-                                Toast.makeText(ClassDetailActivity.this, "已收藏：" + f.name, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(ClassDetailActivity.this,
+                                        getString(R.string.toast_favorited, f.name), Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             copy(payloads[which], items[which]);
                         }
                     }
                 })
-                .setNegativeButton("取消", null)
+                .setNegativeButton(getString(R.string.dialog_cancel), null)
                 .show();
     }
 
@@ -354,7 +363,8 @@ public class ClassDetailActivity extends AppCompatActivity {
         card.setClickable(true);
 
         String shortName = n.getName().substring(n.getName().lastIndexOf('.') + 1);
-        String kind = n.isInterface() ? "接口" : (n.isEnum() ? "枚举" : "类");
+        String kind = n.isInterface() ? getString(R.string.kind_interface)
+                : (n.isEnum() ? getString(R.string.kind_enum) : getString(R.string.kind_class));
         String zh = ZhNames.classZh(n.getName());
         if (zh == null) zh = ZhNames.nestedZh(shortName);
 
@@ -455,21 +465,16 @@ public class ClassDetailActivity extends AppCompatActivity {
     private void copy(String text, String label) {
         ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(ClipData.newPlainText(label, text));
-        Toast.makeText(this, "已复制：" + label, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, getString(R.string.toast_copied, label), Toast.LENGTH_SHORT).show();
     }
 
     /** 复制本类全部静态字段（含类型信息）到剪贴板 */
     private void copyAll() {
         StringBuilder sb = new StringBuilder();
-        sb.append("类: ").append(mClassName).append('\n');
-        sb.append("静态字段: ").append(mFields.size()).append('\n');
+        sb.append(mClassName).append('\n');
         for (OsInfo.FieldInfo f : mFields) {
             sb.append("  ").append(mClassName).append('.').append(f.name)
                     .append(" (").append(f.type).append(") = ").append(f.value).append('\n');
-        }
-        sb.append("嵌套类: ").append(mNested.size()).append('\n');
-        for (Class<?> n : mNested) {
-            sb.append("  ").append(n.getName()).append('\n');
         }
         copy(sb.toString(), mClassName);
     }

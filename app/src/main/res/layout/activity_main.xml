@@ -44,7 +44,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="仅显示含静态字段或嵌套类的项"
+            android:text="@string/filter_label"
             android:textSize="14sp"
             android:textColor="?attr/colorOnSurface" />
 

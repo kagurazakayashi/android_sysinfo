@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">系統資訊常數</string>
+    <string name="title_main">android.os 套件資訊</string>
+    <string name="copy_all">複製全部</string>
+    <string name="favorites">我的最愛</string>
+    <string name="action_favorites">我的最愛</string>
+    <string name="favorites_empty">尚未收藏任何欄位\n\n在任意欄位的選單中選擇「收藏」即可加入</string>
+
+    <!-- 頂列副標題 -->
+    <string name="loading">載入中…</string>
+    <string name="subtitle_main">顯示 %1$d / %2$d 個類別</string>
+    <string name="subtitle_items">顯示 %1$d / %2$d 項</string>
+    <string name="subtitle_favorites">顯示 %1$d / %1$d 項</string>
+
+    <!-- 全域開關 -->
+    <string name="filter_label">僅顯示含靜態欄位或巢狀類別的項目</string>
+
+    <!-- 語言切換 -->
+    <string name="action_language">語言</string>
+    <string name="dialog_language">選擇語言</string>
+    <string name="lang_system">跟隨系統</string>
+    <string name="lang_zh_cn">简体中文</string>
+    <string name="lang_zh_tw">繁體中文</string>
+    <string name="lang_en">English</string>
+    <string name="lang_ja">日本語</string>
+
+    <!-- 詳情頁 -->
+    <string name="cannot_load_class">無法載入類別：%1$s\n（可能是隱藏 API 或系統限制）</string>
+    <string name="type_info">類型資訊</string>
+    <string name="row_kind">種類</string>
+    <string name="row_modifiers">修飾詞</string>
+    <string name="row_package">套件</string>
+    <string name="row_superclass">父類別</string>
+    <string name="row_interfaces">實作的介面</string>
+    <string name="value_none">—</string>
+    <string name="value_none_en">無</string>
+    <string name="kind_class">類別</string>
+    <string name="kind_interface">介面</string>
+    <string name="kind_enum">列舉</string>
+    <string name="kind_annotation">註解</string>
+    <string name="section_fields">靜態欄位（%1$d）</string>
+    <string name="no_public_fields">此類別沒有可讀取的 public 靜態欄位</string>
+    <string name="section_nested">巢狀類別 / 介面（%1$d）</string>
+    <string name="no_nested">沒有巢狀類別</string>
+    <string name="all_hidden_by_filter">已依全域開關隱藏所有空白項目</string>
+    <string name="field_type">類型：%1$s</string>
+
+    <!-- 複製選單 -->
+    <string name="menu_copy_raw_name">複製原始名稱</string>
+    <string name="menu_copy_zh_name">複製中文名稱</string>
+    <string name="menu_copy_value">複製數值</string>
+    <string name="menu_copy_full_entry">複製完整項目</string>
+    <string name="menu_add_favorite">收藏</string>
+    <string name="menu_remove_favorite">取消收藏</string>
+    <string name="dialog_cancel">取消</string>
+    <string name="toast_copied">已複製：%1$s</string>
+    <string name="toast_favorited">已收藏：%1$s</string>
+    <string name="toast_unfavorited">已取消收藏：%1$s</string>
+    <string name="toast_copied_all_classes">已複製全部類別名稱</string>
+
+    <!-- 主頁複製全部 -->
+    <string name="copy_all_header">android.os 套件全部類別（%1$d 個）</string>
+    <string name="copy_all_footer">%1$d 個靜態欄位 · %2$d 個巢狀類別</string>
+    <string name="cannot_load">無法載入</string>
+</resources>
