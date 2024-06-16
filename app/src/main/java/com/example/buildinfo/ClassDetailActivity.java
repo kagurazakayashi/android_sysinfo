@@ -63,9 +63,13 @@ public class ClassDetailActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        // 大标题 = 当前包；小标题在字段/嵌套类统计完成后更新为“显示 X / Y 项”
-        String pkgName = mClassName.contains(".") ? mClassName.substring(0, mClassName.lastIndexOf('.')) : mClassName;
-        toolbar.setTitle(pkgName);
+        // 大标题 = 当前浏览的对象完整类名（如 android.os.Build、android.os.Build$VERSION）；
+        // 小标题在字段/嵌套类统计完成后更新为“显示 X / Y 项”
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(mClassName);
+            getSupportActionBar().setSubtitle(getString(R.string.loading));
+        }
+        toolbar.setTitle(mClassName);
         toolbar.setSubtitle(getString(R.string.loading));
         // 系统标准返回箭头（由 AppCompat 主题自动提供，点击返回上一级）
         if (getSupportActionBar() != null) {

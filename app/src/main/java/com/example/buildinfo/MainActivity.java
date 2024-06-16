@@ -85,7 +85,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setTitle("android.os");
         toolbar.setSubtitle(getString(R.string.loading));
-        // 主界面返回按钮：点击退出应用
+        // 主界面导航按钮：关闭叉（✕），点击退出应用
+        toolbar.setNavigationIcon(R.drawable.ic_close);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
