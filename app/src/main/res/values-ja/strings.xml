@@ -16,8 +16,18 @@
     <!-- グローバルスイッチ -->
     <string name="filter_label">静的フィールドまたはネストクラスを含む項目のみ表示</string>
 
+    <!-- 設定 -->
+    <string name="action_settings">設定</string>
+    <string name="settings_language">言語</string>
+    <string name="settings_about">このアプリについて</string>
+
+    <!-- このアプリについて -->
+    <string name="about_version">バージョン %1$s</string>
+    <string name="about_summary">android.os パッケージ内のクラスと定数の情報を閲覧するアプリです。多言語対応、お気に入り、ワンタップコピーに対応しています。</string>
+    <string name="about_github">GitHub を開く</string>
+    <string name="toast_no_browser">リンクを開けません（利用可能なブラウザがありません）</string>
+
     <!-- 言語切替 -->
-    <string name="action_language">言語</string>
     <string name="dialog_language">言語を選択</string>
     <string name="lang_system">システムに従う</string>
     <string name="lang_zh_cn">简体中文</string>

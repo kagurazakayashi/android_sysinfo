@@ -16,8 +16,18 @@
     <!-- 全域開關 -->
     <string name="filter_label">僅顯示含靜態欄位或巢狀類別的項目</string>
 
+    <!-- 設定 -->
+    <string name="action_settings">設定</string>
+    <string name="settings_language">語言</string>
+    <string name="settings_about">關於</string>
+
+    <!-- 關於 -->
+    <string name="about_version">版本 %1$s</string>
+    <string name="about_summary">瀏覽 android.os 套件中的類別與常數資訊，支援多語言、我的最愛與一鍵複製。</string>
+    <string name="about_github">開啟 GitHub</string>
+    <string name="toast_no_browser">無法開啟連結（找不到可用的瀏覽器）</string>
+
     <!-- 語言切換 -->
-    <string name="action_language">語言</string>
     <string name="dialog_language">選擇語言</string>
     <string name="lang_system">跟隨系統</string>
     <string name="lang_zh_cn">简体中文</string>

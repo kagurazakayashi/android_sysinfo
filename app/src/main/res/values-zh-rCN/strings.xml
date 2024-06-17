@@ -16,8 +16,18 @@
     <!-- 全局开关 -->
     <string name="filter_label">仅显示含静态字段或嵌套类的项</string>
 
+    <!-- 设置 -->
+    <string name="action_settings">设置</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_about">关于</string>
+
+    <!-- 关于 -->
+    <string name="about_version">版本 %1$s</string>
+    <string name="about_summary">浏览 android.os 包中的类与常量信息，支持多语言、收藏夹与一键复制。</string>
+    <string name="about_github">打开 GitHub</string>
+    <string name="toast_no_browser">无法打开链接（未找到可用浏览器）</string>
+
     <!-- 语言切换 -->
-    <string name="action_language">语言</string>
     <string name="dialog_language">选择语言</string>
     <string name="lang_system">跟随系统</string>
     <string name="lang_zh_cn">简体中文</string>

@@ -10,6 +10,8 @@
     <color name="text_sub">?attr/colorOnSurfaceVariant</color>
     <!-- 图标圆形背景（主色容器色） -->
     <color name="icon_bg">?attr/colorPrimaryContainer</color>
+    <!-- 分隔线（Material 3 角色色，随明暗模式自动变化） -->
+    <color name="divider">?attr/colorOutlineVariant</color>
     <!-- 启动图标背景：固定品牌色（自适应图标由系统无主题解析，不能引用 attr） -->
     <color name="ic_launcher_background">#328AF8</color>
 

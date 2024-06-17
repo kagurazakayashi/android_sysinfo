@@ -1,13 +1,17 @@
 package com.example.buildinfo;
 
+import android.content.ActivityNotFoundException;
 import android.content.ClipboardManager;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -28,6 +32,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
@@ -44,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String PREFS = "main_filter";
     private static final String KEY_HIDE_EMPTY = "hide_empty";
+
+    /** GitHub 仓库主页 */
+    private static final String GITHUB_URL = "https://github.com/kagurazakayashi/android_sysinfo";
 
     /** 语言偏好键（与 LocaleManager 一致） */
     private static final String PREFS_LOCALE = "locale_prefs";
@@ -68,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private LinearLayout mContainer;
-    private MaterialSwitch mSwitchFilter;
     private final List<Entry> mEntries = new ArrayList<>();
     private boolean mHideEmpty;
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -101,19 +108,8 @@ public class MainActivity extends AppCompatActivity {
         LocaleManager.apply(this);
 
         mContainer = findViewById(R.id.container);
-        mSwitchFilter = findViewById(R.id.switch_filter_empty);
         mHideEmpty = getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(KEY_HIDE_EMPTY, false);
-        mSwitchFilter.setChecked(mHideEmpty);
-        mSwitchFilter.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(android.widget.CompoundButton buttonView, boolean isChecked) {
-                mHideEmpty = isChecked;
-                getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                        .edit().putBoolean(KEY_HIDE_EMPTY, isChecked).apply();
-                applyFilter();
-            }
-        });
 
         // 后台线程逐个统计各类的字段数 / 嵌套类数（避免主线程卡顿）
         final AtomicInteger done = new AtomicInteger(0);
@@ -177,8 +173,8 @@ public class MainActivity extends AppCompatActivity {
             copyAll();
             return true;
         }
-        if (item.getItemId() == R.id.action_language) {
-            showLanguageDialog();
+        if (item.getItemId() == R.id.action_settings) {
+            showSettingsDialog();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -200,7 +196,218 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, getString(R.string.toast_copied_all_classes), Toast.LENGTH_SHORT).show();
     }
 
-    /** 语言切换对话框 */
+    /** 设置对话框：语言选择 + 全局开关（“仅显示含静态字段或嵌套类的项”） */
+    private void showSettingsDialog() {
+        // 构建对话框内容：一行“语言”条目 + 一行“隐藏空项”开关
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        int padH = dp(20);
+        int padV = dp(8);
+        root.setPadding(padH, dp(12), padH, 0);
+
+        // 行 1：语言（点击打开语言选择对话框）
+        LinearLayout rowLang = new LinearLayout(this);
+        rowLang.setOrientation(LinearLayout.HORIZONTAL);
+        rowLang.setGravity(Gravity.CENTER_VERTICAL);
+        rowLang.setPadding(0, padV, 0, padV);
+        rowLang.setClickable(true);
+        TypedValue ripple = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true);
+        rowLang.setForeground(getDrawable(ripple.resourceId));
+
+        ImageView langIcon = new ImageView(this);
+        langIcon.setImageResource(R.drawable.ic_language);
+        langIcon.setColorFilter(Ui.color(this, R.color.primary));
+        LinearLayout.LayoutParams langIconLp = new LinearLayout.LayoutParams(dp(24), dp(24));
+        langIconLp.setMargins(0, 0, dp(16), 0);
+        langIcon.setLayoutParams(langIconLp);
+
+        TextView langLabel = new TextView(this);
+        langLabel.setText(R.string.settings_language);
+        langLabel.setTextSize(15);
+        langLabel.setTextColor(Ui.color(this, R.color.text_primary));
+        LinearLayout.LayoutParams langLabelLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        langLabel.setLayoutParams(langLabelLp);
+
+        TextView langValue = new TextView(this);
+        langValue.setText(currentLocaleLabel());
+        langValue.setTextSize(14);
+        langValue.setTextColor(Ui.color(this, R.color.text_sub));
+        langValue.setPadding(dp(8), 0, 0, 0);
+
+        rowLang.addView(langIcon);
+        rowLang.addView(langLabel);
+        rowLang.addView(langValue);
+        rowLang.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLanguageDialog();
+            }
+        });
+
+        // 分隔线
+        View divider = new View(this);
+        divider.setBackgroundColor(Ui.color(this, R.color.divider));
+        divider.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+
+        // 行 2：全局开关
+        LinearLayout rowSwitch = new LinearLayout(this);
+        rowSwitch.setOrientation(LinearLayout.HORIZONTAL);
+        rowSwitch.setGravity(Gravity.CENTER_VERTICAL);
+        rowSwitch.setPadding(0, dp(4), 0, dp(4));
+
+        TextView switchLabel = new TextView(this);
+        switchLabel.setText(R.string.filter_label);
+        switchLabel.setTextSize(14);
+        switchLabel.setTextColor(Ui.color(this, R.color.text_primary));
+        LinearLayout.LayoutParams switchLabelLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        switchLabelLp.setMargins(0, 0, dp(16), 0);
+        switchLabel.setLayoutParams(switchLabelLp);
+
+        MaterialSwitch sw = new MaterialSwitch(this);
+        sw.setChecked(mHideEmpty);
+        sw.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(android.widget.CompoundButton buttonView, boolean isChecked) {
+                mHideEmpty = isChecked;
+                getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                        .edit().putBoolean(KEY_HIDE_EMPTY, isChecked).apply();
+                applyFilter();
+            }
+        });
+
+        rowSwitch.addView(switchLabel);
+        rowSwitch.addView(sw);
+
+        // 分隔线 2
+        View divider2 = new View(this);
+        divider2.setBackgroundColor(Ui.color(this, R.color.divider));
+        divider2.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+
+        // 行 3：关于（点击打开“关于”对话框）
+        LinearLayout rowAbout = new LinearLayout(this);
+        rowAbout.setOrientation(LinearLayout.HORIZONTAL);
+        rowAbout.setGravity(Gravity.CENTER_VERTICAL);
+        rowAbout.setPadding(0, padV, 0, padV);
+        rowAbout.setClickable(true);
+        rowAbout.setForeground(getDrawable(ripple.resourceId));
+
+        ImageView aboutIcon = new ImageView(this);
+        aboutIcon.setImageResource(R.drawable.ic_info);
+        aboutIcon.setColorFilter(Ui.color(this, R.color.primary));
+        LinearLayout.LayoutParams aboutIconLp = new LinearLayout.LayoutParams(dp(24), dp(24));
+        aboutIconLp.setMargins(0, 0, dp(16), 0);
+        aboutIcon.setLayoutParams(aboutIconLp);
+
+        TextView aboutLabel = new TextView(this);
+        aboutLabel.setText(R.string.settings_about);
+        aboutLabel.setTextSize(15);
+        aboutLabel.setTextColor(Ui.color(this, R.color.text_primary));
+        LinearLayout.LayoutParams aboutLabelLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        aboutLabel.setLayoutParams(aboutLabelLp);
+
+        rowAbout.addView(aboutIcon);
+        rowAbout.addView(aboutLabel);
+        rowAbout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAboutDialog();
+            }
+        });
+
+        root.addView(rowLang);
+        root.addView(divider);
+        root.addView(rowSwitch);
+        root.addView(divider2);
+        root.addView(rowAbout);
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.action_settings)
+                .setView(root)
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show();
+    }
+
+    /** “关于”对话框：版本号 + 简介 + GitHub 按钮 */
+    private void showAboutDialog() {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        int padH = dp(24);
+        root.setPadding(padH, dp(8), padH, 0);
+
+        // 应用名 + 版本号
+        TextView title = new TextView(this);
+        title.setText(getString(R.string.app_name) + "\n" + getString(R.string.about_version, getVersionName()));
+        title.setTextSize(18);
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setTextColor(Ui.color(this, R.color.text_primary));
+        root.addView(title);
+
+        // 简介
+        TextView summary = new TextView(this);
+        summary.setText(R.string.about_summary);
+        summary.setTextSize(14);
+        summary.setTextColor(Ui.color(this, R.color.text_sub));
+        LinearLayout.LayoutParams summaryLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        summaryLp.setMargins(0, dp(8), 0, dp(20));
+        summary.setLayoutParams(summaryLp);
+        root.addView(summary);
+
+        // GitHub 按钮
+        MaterialButton githubBtn = new MaterialButton(this);
+        githubBtn.setText(R.string.about_github);
+        githubBtn.setIconResource(R.drawable.ic_github);
+        githubBtn.setIconGravity(MaterialButton.ICON_GRAVITY_START);
+        githubBtn.setIconTint(ColorStateList.valueOf(Color.WHITE));
+        githubBtn.setBackgroundColor(Ui.color(this, R.color.primary));
+        githubBtn.setCornerRadius(dp(20));
+        githubBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openGitHub();
+            }
+        });
+        root.addView(githubBtn);
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.settings_about)
+                .setView(root)
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show();
+    }
+
+    /** 读取构建版本号 */
+    private String getVersionName() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            return "";
+        }
+    }
+
+    /** 在浏览器中打开 GitHub 仓库 */
+    private void openGitHub() {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_URL)));
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, R.string.toast_no_browser, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** 当前语言的显示名称 */
+    private String currentLocaleLabel() {
+        final String current = getSharedPreferences(PREFS_LOCALE, Context.MODE_PRIVATE)
+                .getString(KEY_LOCALE, "");
+        if (current == null || current.isEmpty()) return getString(R.string.lang_system);
+        if (current.startsWith("zh-rCN")) return getString(R.string.lang_zh_cn);
+        if (current.startsWith("zh-rTW")) return getString(R.string.lang_zh_tw);
+        if (current.startsWith("en")) return getString(R.string.lang_en);
+        if (current.startsWith("ja")) return getString(R.string.lang_ja);
+        return getString(R.string.lang_system);
+    }
+
+    /** 语言切换对话框（在设置菜单中点击“语言”时弹出） */
     private void showLanguageDialog() {
         final String current = getSharedPreferences(PREFS_LOCALE, Context.MODE_PRIVATE)
                 .getString(KEY_LOCALE, "");

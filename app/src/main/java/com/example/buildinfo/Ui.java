@@ -33,6 +33,7 @@ public final class Ui {
         if (colorRes == R.color.icon_bg) return com.google.android.material.R.attr.colorPrimaryContainer;
         if (colorRes == R.color.text_primary) return com.google.android.material.R.attr.colorOnSurface;
         if (colorRes == R.color.text_sub) return com.google.android.material.R.attr.colorOnSurfaceVariant;
+        if (colorRes == R.color.divider) return com.google.android.material.R.attr.colorOutlineVariant;
         return 0;
     }
 

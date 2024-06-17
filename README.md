@@ -14,6 +14,7 @@ This project was created to help you understand what is actually stored in the s
 - [Installation](#installation)
 - [Usage](#usage)
 - [Building from Source](#building-from-source)
+- [Privacy](#privacy)
 - [License](#license)
 
 ## Introduction
@@ -143,6 +144,17 @@ Steps:
    (On Windows with Git Bash / PowerShell, use `.\gradlew.bat assembleDebug`.)
 
 3. The APK is generated at `app/build/outputs/apk/debug/app-debug.apk`.
+
+## Privacy
+
+This app is designed with privacy in mind:
+
+- **No permissions requested.** The app does not declare or request any Android permission.
+- **Fully offline.** The app contains no network code at all — it never connects to the internet, never sends data to any server, and needs no network permission.
+- **Local data only.** Everything the app stores (your favorites, UI language, display filter) is kept in the app's private storage on your device (SharedPreferences). Nothing is ever uploaded anywhere.
+- **Reads system information only.** The values shown (device model, Android version, battery state, etc.) are read locally from your device's `android.os` classes and displayed on your screen — they never leave the device.
+- **No ads, no tracking, no analytics.** The app contains no third-party SDKs, ads or usage statistics.
+- All local data is deleted automatically when you uninstall the app.
 
 ## Project Structure
 
